@@ -1,0 +1,3405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>حديقة الورد البرغندي الحية • منذ 2 يوليو 2025</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Arabic Editorial Typography: Tajawal & Amiri -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Standard Reliable Three.js r128 CDN (No fragile importmap / ES module blockers) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root {
+      --burgundy-deep: #24040e;
+      --burgundy-mid: #5a0b24;
+      --burgundy-bright: #9e193c;
+      --rose-berry: #d84b72;
+      --burgundy-glass: rgba(42, 7, 20, 0.72);
+      --burgundy-card: rgba(36, 5, 17, 0.76);
+      --champagne-gold: #f0d290;
+      --ivory-text: #fff9fa;
+      --border-gold: rgba(240, 210, 144, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #1f050e;
+      font-family: 'Tajawal', sans-serif;
+      color: var(--ivory-text);
+      user-select: none;
+    }
+
+    .font-amiri {
+      font-family: 'Amiri', serif;
+    }
+
+    .burgundy-glass {
+      background: var(--burgundy-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-gold);
+      box-shadow: 0 12px 36px rgba(18, 2, 8, 0.42), inset 0 1px 0 rgba(255, 246, 230, 0.18);
+    }
+
+    .burgundy-stat {
+      background: var(--burgundy-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(240, 210, 144, 0.28);
+      box-shadow: 0 8px 24px rgba(15, 2, 7, 0.34), inset 0 1px 0 rgba(255, 246, 230, 0.12);
+      transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+    }
+
+    .burgundy-stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(240, 210, 144, 0.58);
+      background: rgba(58, 10, 27, 0.82);
+    }
+
+    .text-champagne-gradient {
+      background: linear-gradient(135deg, #ffffff 0%, #f7dfb0 48%, #e5b869 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* =========================================================================
+       INSTANT-RESPONSE GPU ENTRANCE CURTAINS & UP/DOWN FLOATING ROSE PETALS
+       ========================================================================= */
+    #entranceOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      overflow: hidden;
+      pointer-events: auto;
+      transition: visibility 0.95s ease;
+    }
+
+    .curtain-panel {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50.5%;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #curtainRight {
+      right: 0;
+      background: radial-gradient(circle at 0% 50%, #680e2b 0%, #360616 62%, #1b030a 100%);
+      border-left: 1px solid rgba(240, 210, 144, 0.34);
+    }
+
+    #curtainLeft {
+      left: 0;
+      background: radial-gradient(circle at 100% 50%, #680e2b 0%, #360616 62%, #1b030a 100%);
+      border-right: 1px solid rgba(240, 210, 144, 0.34);
+    }
+
+    #entranceOverlay.curtains-open {
+      pointer-events: none;
+    }
+
+    #entranceOverlay.curtains-open #curtainRight {
+      transform: translate3d(102%, 0, 0);
+    }
+
+    #entranceOverlay.curtains-open #curtainLeft {
+      transform: translate3d(-102%, 0, 0);
+    }
+
+    /* GPU-Composited Rising & Falling Rose Petals on Intro Screen */
+    #introPetalsContainer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+      transition: opacity 0.45s ease;
+    }
+
+    #entranceOverlay.curtains-open #introPetalsContainer {
+      opacity: 0;
+    }
+
+    @keyframes petalRiseWave {
+      0% {
+        transform: translate3d(0, 106vh, 0) rotate(0deg);
+        opacity: 0;
+      }
+      15% { opacity: 0.82; }
+      85% { opacity: 0.82; }
+      100% {
+        transform: translate3d(var(--drift-x, 35px), -12vh, 0) rotate(var(--rot-end, 240deg));
+        opacity: 0;
+      }
+    }
+
+    @keyframes petalFallWave {
+      0% {
+        transform: translate3d(0, -12vh, 0) rotate(0deg);
+        opacity: 0;
+      }
+      15% { opacity: 0.78; }
+      85% { opacity: 0.78; }
+      100% {
+        transform: translate3d(var(--drift-x, -35px), 106vh, 0) rotate(var(--rot-end, -240deg));
+        opacity: 0;
+      }
+    }
+
+    .intro-petal-up {
+      position: absolute;
+      top: 0;
+      will-change: transform, opacity;
+      animation: petalRiseWave var(--dur, 9s) linear infinite;
+      animation-delay: var(--delay, 0s);
+    }
+
+    .intro-petal-down {
+      position: absolute;
+      top: 0;
+      will-change: transform, opacity;
+      animation: petalFallWave var(--dur, 9.5s) linear infinite;
+      animation-delay: var(--delay, 0s);
+    }
+
+    #entranceCenterContent {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      will-change: opacity, transform;
+      transform: translate3d(0, 0, 0);
+      transition: opacity 0.42s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #entranceOverlay.curtains-open #entranceCenterContent {
+      opacity: 0;
+      transform: translate3d(0, -18px, 0) scale(0.95);
+      pointer-events: none;
+    }
+
+    .ambient-rose-glow {
+      position: absolute;
+      width: min(80vw, 460px);
+      height: min(80vw, 460px);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(190, 34, 78, 0.42) 0%, rgba(105, 14, 42, 0.18) 54%, rgba(36, 6, 16, 0) 76%);
+      pointer-events: none;
+    }
+
+    /* Enter button is ALWAYS immediately visible & clickable (never blocked) */
+    #enterGardenBtn {
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 12px 32px rgba(158, 25, 60, 0.48), 0 0 0 1px rgba(240, 210, 144, 0.4);
+    }
+
+    #enterGardenBtn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 38px rgba(185, 32, 72, 0.62), 0 0 0 1px rgba(240, 210, 144, 0.85);
+    }
+
+    /* HUD Layers */
+    .hud-layer {
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity, transform;
+      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .hud-layer.hud-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hud-hidden-top {
+      opacity: 0 !important;
+      transform: translate3d(0, -24px, 0);
+      pointer-events: none !important;
+    }
+
+    .hud-hidden-bottom {
+      opacity: 0 !important;
+      transform: translate3d(0, 26px, 0);
+      pointer-events: none !important;
+    }
+
+    /* Animated GPU Sound-Wave Bars for Audio Button */
+    @keyframes soundBarWave {
+      0%, 100% { transform: scaleY(0.30); }
+      50% { transform: scaleY(1); }
+    }
+
+    .sound-bar {
+      transform-origin: bottom;
+      animation: soundBarWave 0.85s ease-in-out infinite;
+    }
+    .sound-bar-1 { animation-delay: 0.0s; }
+    .sound-bar-2 { animation-delay: 0.20s; }
+    .sound-bar-3 { animation-delay: 0.40s; }
+    .sound-bar-4 { animation-delay: 0.15s; }
+
+    /* Custom Burgundy & Champagne Timeline Slider */
+    input[type="range"].burgundy-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 246, 230, 0.22);
+      outline: none;
+      cursor: pointer;
+      border: 1px solid rgba(240, 210, 144, 0.36);
+    }
+
+    input[type="range"].burgundy-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0d290 45%, #9e193c 100%);
+      border: 2px solid #fff6e6;
+      box-shadow: 0 2px 12px rgba(20, 2, 8, 0.65);
+      cursor: grab;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"].burgundy-slider::-webkit-slider-thumb:hover,
+    input[type="range"].burgundy-slider:active::-webkit-slider-thumb {
+      transform: scale(1.16);
+      cursor: grabbing;
+    }
+
+    input[type="range"].burgundy-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0d290 45%, #9e193c 100%);
+      border: 2px solid #fff6e6;
+      box-shadow: 0 2px 12px rgba(20, 2, 8, 0.65);
+      cursor: grab;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    @keyframes futureLockShake {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      20% { transform: translate3d(-5px, 0, 0); }
+      40% { transform: translate3d(5px, 0, 0); }
+      60% { transform: translate3d(-3px, 0, 0); }
+      80% { transform: translate3d(3px, 0, 0); }
+    }
+
+    .animate-lock-shake {
+      animation: futureLockShake 0.4s ease-in-out both;
+    }
+
+    #statusToast, #rosePopover {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .floating-hidden {
+      opacity: 0;
+      transform: translate3d(-50%, -10px, 0) scale(0.96);
+      pointer-events: none;
+    }
+    .floating-visible {
+      opacity: 1;
+      transform: translate3d(-50%, 0, 0) scale(1);
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full overflow-hidden bg-[#1f050e]">
+
+  <!-- Automatic GitHub MP3 Audio Element (Place song.mp3 in the same folder) + Local File Input -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="./song.mp3" type="audio/mpeg" />
+    <source src="song.mp3" type="audio/mpeg" />
+  </audio>
+  <input id="customAudioFileInput" type="file" accept="audio/*" class="hidden" />
+
+  <!-- Fullscreen Interactive 3D Viewport -->
+  <div id="sceneContainer" class="fixed inset-0 w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+  <!-- Hardware-Accelerated Entrance Curtain Overlay with Rising & Falling Rose Petals -->
+  <div id="entranceOverlay" aria-label="بوابة الحديقة">
+    <div id="curtainRight" class="curtain-panel"></div>
+    <div id="curtainLeft" class="curtain-panel"></div>
+
+    <!-- Rising & Falling SVG Rose Petals Container -->
+    <div id="introPetalsContainer"></div>
+
+    <div id="entranceCenterContent">
+      <div class="ambient-rose-glow"></div>
+
+      <!-- Botanical Burgundy Rose Crest (Clean Thin-Stroke SVG) -->
+      <div class="relative mb-5 flex items-center justify-center">
+        <svg class="w-24 h-24 sm:w-28 sm:h-28 text-[#f0d290]" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="60" cy="60" r="54" stroke-opacity="0.30" />
+          <circle cx="60" cy="60" r="48" stroke-opacity="0.18" stroke-dasharray="3 4" />
+          <path d="M60 66 C60 78, 59 90, 60 103" />
+          <path d="M60 80 L56.5 78.5 L60 76.5" />
+          <path d="M60 91 L63.5 89.5 L60 87.5" />
+          <path d="M60 84 C51 82, 43 76, 40 69 C48 69, 55 74, 60 84 Z" fill="rgba(216, 75, 114, 0.22)" />
+          <path d="M40 69 C47 74, 53 79, 60 84" stroke-opacity="0.6" />
+          <path d="M60 89 C69 87, 77 81, 80 74 C72 74, 65 79, 60 89 Z" fill="rgba(216, 75, 114, 0.22)" />
+          <path d="M80 74 C73 79, 67 84, 60 89" stroke-opacity="0.6" />
+          <path d="M54 64 C49 67, 45 67, 43 65" />
+          <path d="M66 64 C71 67, 75 67, 77 65" />
+          <path d="M60 65 C46 65, 40 53, 45 41 C49 32, 57 29, 60 29 C63 29, 71 32, 75 41 C80 53, 74 65, 60 65 Z" fill="rgba(158, 25, 60, 0.45)" />
+          <path d="M45 44 C42 38, 46 31, 53 31" />
+          <path d="M75 44 C78 38, 74 31, 67 31" />
+          <path d="M48 53 C49 41, 56 35, 62 36 C68 37, 71 44, 68 52 C65 58, 56 59, 52 53 C49 48, 53 41, 59 41 C63 41, 65 45, 62 48 C60 50, 57 49, 57 46" />
+        </svg>
+      </div>
+
+      <!-- Title & Reference Subtitle -->
+      <h1 class="font-amiri text-3xl sm:text-5xl font-bold text-champagne-gradient tracking-wide text-center">
+        حديقة الورد البرغندي الحية
+      </h1>
+      <p class="mt-2.5 text-xs sm:text-sm text-[#f7dfb0]/90 font-medium tracking-wide text-center max-w-md leading-relaxed">
+        تنمو وتتفتح مع كل يوم جديد منذ 2 يوليو 2025
+      </p>
+
+      <!-- Always-Active Immediate Enter Button -->
+      <div class="mt-8 flex flex-col items-center">
+        <button id="enterGardenBtn"
+                type="button"
+                onclick="window.openGardenCurtains && window.openGardenCurtains()"
+                class="px-10 py-3.5 rounded-full bg-gradient-to-l from-[#a61b40] via-[#7c102e] to-[#4f091d] hover:from-[#bf224b] hover:to-[#630c25] border border-[#f0d290]/75 text-[#fff9fa] text-sm sm:text-base font-bold flex items-center gap-3 active:scale-95">
+          <span>افتحي الحديقة</span>
+          <svg class="w-4 h-4 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+            <path d="M19 12H5M11 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <span class="mt-3 text-[11px] text-[#f0d290]/70">
+          اضغطي لفتح الستائر والدخول إلى الحديقة
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimal Exit & Camera Reset Controls (Visible ONLY inside Pure 3D Viewing Mode) -->
+  <div id="pure3dControls"
+       class="hidden fixed top-4 right-4 sm:top-6 sm:right-6 z-40 flex items-center gap-2.5">
+    <button id="exit3dModeBtn"
+            type="button"
+            class="burgundy-glass rounded-full px-4 py-2.5 text-xs sm:text-sm font-bold text-[#fff9fa] hover:border-[#f0d290] flex items-center gap-2 transition active:scale-95">
+      <svg class="w-4 h-4 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>إنهاء وضع 3D</span>
+    </button>
+
+    <button id="pure3dResetBtn"
+            type="button"
+            title="إعادة ضبط الزاوية"
+            aria-label="إعادة ضبط الزاوية"
+            class="burgundy-glass rounded-full p-2.5 text-[#fff9fa] hover:border-[#f0d290] flex items-center justify-center transition active:scale-95">
+      <svg class="w-4 h-4 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M3 3v5h5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Future Lock / Celebration / Audio Toast Notification -->
+  <div id="statusToast"
+       role="status"
+       aria-live="polite"
+       class="floating-hidden fixed top-24 sm:top-28 left-1/2 z-30 w-[92%] max-w-sm burgundy-glass rounded-2xl px-4 py-3 text-center">
+    <div class="flex items-center justify-center gap-2 text-[#f0d290] text-xs sm:text-sm font-bold mb-1">
+      <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v4M12 16h.01" stroke-linecap="round" />
+      </svg>
+      <span id="toastTitle">الغد مقفل حتى موعده</span>
+    </div>
+    <p id="toastBody" class="text-xs sm:text-sm text-[#fff9fa]/95 leading-relaxed">
+      يتفتح نمو الغد تلقائياً عند منتصف الليل.
+    </p>
+  </div>
+
+  <!-- Interactive Rose Inspection Popover (Shown when clicking any rose) -->
+  <div id="rosePopover"
+       class="floating-hidden fixed top-24 sm:top-28 left-1/2 z-30 w-[92%] max-w-xs burgundy-glass rounded-2xl px-4 py-3.5 text-right">
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <span class="w-3 h-3 rounded-full bg-gradient-to-tr from-[#4a0518] via-[#9e193c] to-[#f08aa7] ring-2 ring-[#f0d290]/50 shrink-0"></span>
+        <div>
+          <span id="popoverBloomTitle" class="font-amiri text-base sm:text-lg font-bold text-[#f0d290] block leading-tight">
+            الوردة البرغندية رقم 1
+          </span>
+          <span id="popoverBloomStage" class="text-[11px] text-[#f7dfb0]/85 font-medium">
+            إزهار كامل متعدد الطبقات
+          </span>
+        </div>
+      </div>
+      <button id="closePopoverBtn"
+              type="button"
+              aria-label="إغلاق"
+              class="p-1 rounded-lg text-[#fff9fa]/70 hover:text-[#fff9fa] hover:bg-white/10 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="mt-2.5 pt-2.5 border-t border-[#f0d290]/25 flex flex-col gap-1.5 text-xs sm:text-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-[#f5d5de]">تاريخ التفتح</span>
+        <span id="popoverBloomDate" class="font-bold text-[#fff9fa]">16 يوليو 2025</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[#f5d5de]">حالة الوردة</span>
+        <span id="popoverBloomAge" class="font-bold text-[#f0d290]">متفتحة بالكامل</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header id="topHud" class="hud-layer fixed top-0 inset-x-0 z-20 px-2.5 pt-2.5 sm:px-5 sm:pt-3.5">
+    <div class="max-w-6xl mx-auto burgundy-glass rounded-2xl sm:rounded-3xl px-3 py-2 sm:px-5 sm:py-2.5 flex flex-wrap items-center justify-between gap-2">
+
+      <!-- Reference Date Label, Current Day Badge & Live Atmosphere Switcher -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-[#5a0b24]/70 border border-[#f0d290]/35 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f0d290] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="4" width="18" height="18" rx="2.5" />
+            <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round" />
+            <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="text-[11px] sm:text-xs font-bold text-[#fff6e6]">منذ 2 يوليو 2025</span>
+        </div>
+
+        <span id="headerDayBadge" class="font-amiri text-lg sm:text-2xl font-bold text-champagne-gradient leading-none">
+          اليوم 499
+        </span>
+
+        <!-- 3-Mode Garden Atmosphere Switcher (Morning / Golden Sunset / Firefly Night) -->
+        <div class="flex items-center bg-[#2a0612]/75 p-0.5 rounded-xl border border-[#f0d290]/30" role="group" aria-label="أجواء الحديقة">
+          <button type="button"
+                  data-atmo="morning"
+                  class="atmo-btn px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition bg-[#8c1636] text-[#fff9fa] shadow-sm">
+            <svg class="w-3.5 h-3.5 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="4.5" />
+              <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" stroke-linecap="round" />
+            </svg>
+            <span class="hidden md:inline">إشراقة الصباح</span>
+          </button>
+
+          <button type="button"
+                  data-atmo="sunset"
+                  class="atmo-btn px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition text-[#f5d5de] hover:text-white">
+            <svg class="w-3.5 h-3.5 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M17 18a5 5 0 0 0-10 0" />
+              <line x1="12" y1="9" x2="12" y2="2" stroke-linecap="round" />
+              <line x1="4.22" y1="10.22" x2="5.64" y2="11.64" stroke-linecap="round" />
+              <line x1="1" y1="18" x2="3" y2="18" stroke-linecap="round" />
+              <line x1="21" y1="18" x2="23" y2="18" stroke-linecap="round" />
+              <line x1="18.36" y1="11.64" x2="19.78" y2="10.22" stroke-linecap="round" />
+              <line x1="23" y1="22" x2="1" y2="22" stroke-linecap="round" />
+            </svg>
+            <span class="hidden md:inline">سحر الغروب</span>
+          </button>
+
+          <button type="button"
+                  data-atmo="night"
+                  class="atmo-btn px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition text-[#f5d5de] hover:text-white">
+            <svg class="w-3.5 h-3.5 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-linejoin="round" />
+            </svg>
+            <span class="hidden md:inline">نسيم المساء</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Primary Actions: Morning Dew Shower, Audio Controls, Pure 3D Mode & Growth Journey -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Joyful "رشة ندى" (Water / Dew Sparkle Shower) Button -->
+        <button id="dewShowerBtn"
+                type="button"
+                title="رشة ندى منعشة للورود"
+                class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-l from-[#1c6b58] to-[#12473a] hover:from-[#24856e] hover:to-[#175949] border border-[#a6f0dc]/45 text-[#f2fffb] text-xs font-bold flex items-center gap-1.5 shadow-md transition active:scale-95">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a6f0dc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke-linejoin="round" />
+          </svg>
+          <span>رشة ندى</span>
+        </button>
+
+        <!-- Audio Play/Pause Button + Optional Local MP3 Loader -->
+        <div class="flex items-center rounded-xl bg-[#5a0b24]/65 border border-[#f0d290]/35 overflow-hidden">
+          <button id="audioToggleBtn"
+                  type="button"
+                  title="تشغيل / إيقاف الموسيقى"
+                  aria-label="تشغيل أو إيقاف الموسيقى"
+                  class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-[#78102c]/80 text-[#f0d290] flex items-center justify-center gap-1.5 transition active:scale-95">
+            <svg id="audioPlayingIcon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor">
+              <rect class="sound-bar sound-bar-1" x="3" y="6" width="2.4" height="14" rx="1.2" />
+              <rect class="sound-bar sound-bar-2" x="8.2" y="3" width="2.4" height="17" rx="1.2" />
+              <rect class="sound-bar sound-bar-3" x="13.4" y="7" width="2.4" height="13" rx="1.2" />
+              <rect class="sound-bar sound-bar-4" x="18.6" y="4" width="2.4" height="16" rx="1.2" />
+            </svg>
+            <svg id="audioPausedIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M11 5L6 9H3v6h3l5 4V5z" stroke-linejoin="round" />
+              <line x1="22" y1="9" x2="16" y2="15" stroke-linecap="round" />
+              <line x1="16" y1="9" x2="22" y2="15" stroke-linecap="round" />
+            </svg>
+          </button>
+
+          <button id="uploadMp3Btn"
+                  type="button"
+                  title="اختيار ملف أغنية MP3 من جهازك"
+                  aria-label="اختيار ملف أغنية MP3"
+                  class="px-2 py-1.5 sm:py-2 border-r border-[#f0d290]/20 hover:bg-[#78102c]/80 text-[#f7dfb0]/85 hover:text-[#fff9fa] transition active:scale-95">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M9 18V5l12-2v13" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Pure 3D Viewing Mode Button -->
+        <button id="enter3dModeBtn"
+                type="button"
+                class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-[#5a0b24]/65 hover:bg-[#78102c]/85 border border-[#f0d290]/35 text-[#fff9fa] text-xs font-bold flex items-center gap-1.5 transition active:scale-95">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke-linejoin="round" />
+            <path d="M2 17l10 5 10-5" stroke-linejoin="round" />
+            <path d="M2 12l10 5 10-5" stroke-linejoin="round" />
+          </svg>
+          <span>وضع 3D</span>
+        </button>
+
+        <!-- Slow Realistic Growth Journey Button -->
+        <button id="growthJourneyBtn"
+                type="button"
+                class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-l from-[#9e193c] to-[#5a0b24] hover:from-[#b51e46] hover:to-[#700e2d] border border-[#f0d290]/55 text-[#fff9fa] text-xs font-bold flex items-center gap-1.5 shadow-md transition active:scale-95">
+          <svg id="journeyPlayIcon" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="6 4 20 12 6 20 6 4" stroke-linejoin="round" />
+          </svg>
+          <svg id="journeyPauseIcon" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f0d290] hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <line x1="8" y1="5" x2="8" y2="19" stroke-linecap="round" />
+            <line x1="16" y1="5" x2="16" y2="19" stroke-linecap="round" />
+          </svg>
+          <span id="growthJourneyLabel">رحلة النمو</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bottom Telemetry Cards, Milestone Pills & Timeline Scrubber -->
+  <footer id="bottomHud" class="hud-layer fixed bottom-0 inset-x-0 z-20 px-2.5 pb-2.5 sm:px-5 sm:pb-3.5">
+    <div class="max-w-6xl mx-auto flex flex-col gap-2">
+
+      <!-- 4 Burgundy & Champagne Glassmorphism Telemetry Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <!-- Card 1: عمر الحكاية -->
+        <div class="burgundy-stat rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-2">
+          <div>
+            <div class="text-[11px] text-[#f0d290]/90 font-bold">عمر الحكاية</div>
+            <div id="metricStoryAge" class="font-amiri text-lg sm:text-xl font-bold text-[#fff9fa] mt-0.5 leading-snug">
+              499 يوم
+            </div>
+          </div>
+          <svg class="w-5 h-5 text-[#f0d290]/85 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+
+        <!-- Card 2: التاريخ -->
+        <div class="burgundy-stat rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-[11px] text-[#f0d290]/90 font-bold">التاريخ</div>
+            <div id="metricFullDate" class="text-xs sm:text-sm font-bold text-[#fff9fa] mt-0.5 leading-snug truncate">
+              الجمعة، 13 نوفمبر 2026
+            </div>
+          </div>
+          <svg class="w-5 h-5 text-[#f0d290]/85 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="4" width="18" height="18" rx="2.5" />
+            <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round" />
+            <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+
+        <!-- Card 3: ارتفاع الشجرة -->
+        <div class="burgundy-stat rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-2">
+          <div>
+            <div class="text-[11px] text-[#f0d290]/90 font-bold">ارتفاع الشجرة</div>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="metricTreeHeight" class="font-amiri text-lg sm:text-xl font-bold text-[#f0d290] leading-snug" dir="ltr">
+                184.6 سم
+              </span>
+              <span id="metricBloomCount" class="text-[11px] font-bold text-[#ffd6e2] bg-[#8c1636]/75 px-2 py-0.5 rounded-full border border-[#f0d290]/30">
+                18 وردة
+              </span>
+            </div>
+          </div>
+          <svg class="w-5 h-5 text-[#f0d290]/85 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 22v-9M12 13c-3.5 0-6-2.5-6-6 0-2.5 2-4.5 6-4.5s6 2 6 4.5c0 3.5-2.5 6-6 6z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+
+        <!-- Card 4: المدة الزمنية -->
+        <div class="burgundy-stat rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-[11px] text-[#f0d290]/90 font-bold">المدة الزمنية</div>
+            <div id="metricElapsedDuration" class="font-amiri text-lg sm:text-xl font-bold text-[#f0d290] mt-0.5 leading-snug truncate">
+              16 شهر و 11 يوم
+            </div>
+          </div>
+          <svg class="w-5 h-5 text-[#f0d290]/85 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M5 3h14M5 21h14M7 3v4a5 5 0 0 0 10 0V3M7 21v-4a5 5 0 0 1 10 0v4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Milestone Quick-Jump Pills & Timeline Navigation -->
+      <div class="burgundy-glass rounded-2xl sm:rounded-3xl px-3.5 py-2 sm:px-5 sm:py-2.5 flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <div id="milestonePillsContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+          <span class="hidden md:inline text-[11px] text-[#f7dfb0]/80 shrink-0">
+            اضغطي على أي وردة في الشجيرة لتفاصيل تفتحها
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button id="prevDayBtn"
+                  type="button"
+                  class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-[#5a0b24]/70 hover:bg-[#78102c]/85 disabled:opacity-35 disabled:pointer-events-none border border-[#f0d290]/32 text-xs font-bold text-[#fff9fa] shrink-0 flex items-center gap-1 transition active:scale-95">
+            <svg class="w-3.5 h-3.5 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>اليوم السابق</span>
+          </button>
+
+          <div class="flex-1 flex items-center min-w-0">
+            <input id="daySlider"
+                   type="range"
+                   min="0"
+                   max="499"
+                   value="499"
+                   aria-label="الخط الزمني"
+                   class="burgundy-slider" />
+          </div>
+
+          <!-- Locked Tomorrow Button with Live Countdown -->
+          <button id="lockedTomorrowBtn"
+                  type="button"
+                  class="shrink-0 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-[#24040e]/90 border border-[#f0d290]/40 hover:border-[#f0d290] flex items-center gap-2 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f0d290] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <rect x="4" y="11" width="16" height="10" rx="2" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round" />
+            </svg>
+            <div class="text-right leading-none">
+              <div class="text-[11px] font-bold text-[#f0d290]">الغد</div>
+              <div id="countdownClock" class="text-[10px] font-mono text-[#fff6e6] mt-0.5" dir="ltr">
+                00:00:00
+              </div>
+            </div>
+          </button>
+
+          <button id="nextDayBtn"
+                  type="button"
+                  class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-[#5a0b24]/70 hover:bg-[#78102c]/85 border border-[#f0d290]/32 text-xs font-bold text-[#fff9fa] shrink-0 flex items-center gap-1 transition active:scale-95">
+            <span>اليوم التالي</span>
+            <svg class="w-3.5 h-3.5 text-[#f0d290]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       SCRIPT 1: FAULT-TOLERANT INSTANT INTRO CURTAIN OPENER (NEVER BLOCKS!)
+       ========================================================================= -->
+  <script>
+    (function setupInstantIntroScreen() {
+      // 1. Populate rising & falling SVG rose petals on the intro curtain
+      const container = document.getElementById('introPetalsContainer');
+      if (container) {
+        const petalColors = ['#d84b72', '#9e193c', '#f08aa7', '#7a102e', '#f0d290'];
+        for (let i = 0; i < 16; i++) {
+          const el = document.createElement('div');
+          const isRising = i % 2 === 0;
+          el.className = isRising ? 'intro-petal-up' : 'intro-petal-down';
+          const leftPct = 4 + (i * 6.1) % 92;
+          const dur = (8.0 + (i % 5) * 1.3).toFixed(1) + 's';
+          const delay = (-i * 0.75).toFixed(2) + 's';
+          const driftX = ((i % 2 === 0 ? 1 : -1) * (25 + (i * 11) % 50)) + 'px';
+          const rotEnd = ((i % 2 === 0 ? 1 : -1) * (180 + i * 24)) + 'deg';
+          const size = 14 + (i % 4) * 4;
+          const fill = petalColors[i % petalColors.length];
+
+          el.style.left = leftPct + '%';
+          el.style.setProperty('--dur', dur);
+          el.style.setProperty('--delay', delay);
+          el.style.setProperty('--drift-x', driftX);
+          el.style.setProperty('--rot-end', rotEnd);
+
+          el.innerHTML =
+            '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="' + fill + '" fill-opacity="0.76">' +
+            '<path d="M12 2C7.5 2 4 6.5 4 12.5C4 18 8 22 12 22C16 22 20 18 20 12.5C20 6.5 16.5 2 12 2Z" />' +
+            '</svg>';
+          container.appendChild(el);
+        }
+      }
+
+      // 2. Define guaranteed, non-blocking curtain opening function
+      let curtainsOpened = false;
+      window.openGardenCurtains = function () {
+        if (curtainsOpened) return;
+        curtainsOpened = true;
+
+        const overlay = document.getElementById('entranceOverlay');
+        const topHud = document.getElementById('topHud');
+        const bottomHud = document.getElementById('bottomHud');
+
+        if (overlay) {
+          overlay.classList.add('curtains-open');
+          setTimeout(function () {
+            overlay.style.display = 'none';
+          }, 980);
+        }
+
+        setTimeout(function () {
+          if (topHud) topHud.classList.add('hud-active');
+          if (bottomHud) bottomHud.classList.add('hud-active');
+        }, 220);
+
+        // Trigger audio & 3D welcome sweep safely without blocking UI
+        try {
+          if (typeof window.onGardenEnteredCallback === 'function') {
+            window.onGardenEnteredCallback();
+          }
+        } catch (err) {
+          console.warn('Welcome callback warning:', err);
+        }
+      };
+
+      const enterBtn = document.getElementById('enterGardenBtn');
+      if (enterBtn) {
+        enterBtn.addEventListener('click', window.openGardenCurtains);
+      }
+    })();
+  </script>
+
+  <!-- =========================================================================
+       SCRIPT 2: MAIN CHRONOLOGICAL, AUDIO & PHOTOREALISTIC 3D GARDEN ENGINE
+       ========================================================================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      // =======================================================================
+      // 1. REAL-TIME CHRONOLOGICAL ENGINE (Anchor: 2 July 2025 = Day 0)
+      // =======================================================================
+      const MS_PER_DAY = 86400000;
+      const START_YEAR = 2025;
+      const START_MONTH = 6; // July (0-indexed)
+      const START_DAY = 2;
+      const START_NOON = new Date(START_YEAR, START_MONTH, START_DAY, 12, 0, 0, 0);
+
+      const ARABIC_WEEKDAYS = [
+        'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
+      ];
+      const ARABIC_MONTHS = [
+        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+      ];
+
+      function getLocalNoon(dateObj) {
+        return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 12, 0, 0, 0);
+      }
+
+      function computeTodayDayIndex() {
+        const todayNoon = getLocalNoon(new Date());
+        const diff = Math.round((todayNoon.getTime() - START_NOON.getTime()) / MS_PER_DAY);
+        return Math.max(0, diff);
+      }
+
+      function getDateForDayIndex(dayIndex) {
+        return new Date(START_YEAR, START_MONTH, START_DAY + dayIndex, 12, 0, 0, 0);
+      }
+
+      function formatArabicFullDate(dateObj) {
+        const weekday = ARABIC_WEEKDAYS[dateObj.getDay()];
+        const day = dateObj.getDate();
+        const month = ARABIC_MONTHS[dateObj.getMonth()];
+        const year = dateObj.getFullYear();
+        return weekday + '، ' + day + ' ' + month + ' ' + year;
+      }
+
+      function formatArabicShortDate(dateObj) {
+        const day = dateObj.getDate();
+        const month = ARABIC_MONTHS[dateObj.getMonth()];
+        const year = dateObj.getFullYear();
+        return day + ' ' + month + ' ' + year;
+      }
+
+      function computeElapsedMonthsAndDays(targetDate) {
+        let months =
+          (targetDate.getFullYear() - START_YEAR) * 12 +
+          (targetDate.getMonth() - START_MONTH);
+        let days = targetDate.getDate() - START_DAY;
+
+        if (days < 0) {
+          months -= 1;
+          const prevMonthLastDay = new Date(
+            targetDate.getFullYear(),
+            targetDate.getMonth(),
+            0
+          ).getDate();
+          days += prevMonthLastDay;
+        }
+
+        months = Math.max(0, months);
+        days = Math.max(0, days);
+
+        if (months === 0 && days === 0) return 'يوم البداية';
+        if (months === 0) return days + ' يوم';
+        if (days === 0) return months + ' شهر';
+        return months + ' شهر و ' + days + ' يوم';
+      }
+
+      function computeTreeHeightCm(dayIndex) {
+        if (dayIndex <= 0) return 4.0;
+        return Math.min(196.0, 4.0 + 180.6 * Math.pow(dayIndex / 499, 0.86));
+      }
+
+      // =======================================================================
+      // 2. STATE & DOM ELEMENTS
+      // =======================================================================
+      let todayIndex = computeTodayDayIndex();
+      let selectedDay = todayIndex;
+      let visualDay = todayIndex;
+      let lastRenderedGrowthDay = -999;
+      let isPure3DMode = false;
+      let isJourneyPlaying = false;
+      let journeyStartMs = 0;
+      let journeyPausedFraction = 0;
+      const JOURNEY_DURATION_MS = 24000;
+      let bushHappyImpulse = 0;
+
+      const bgMusic = document.getElementById('bg-music');
+      const customAudioFileInput = document.getElementById('customAudioFileInput');
+      const audioToggleBtn = document.getElementById('audioToggleBtn');
+      const uploadMp3Btn = document.getElementById('uploadMp3Btn');
+      const audioPlayingIcon = document.getElementById('audioPlayingIcon');
+      const audioPausedIcon = document.getElementById('audioPausedIcon');
+      const dewShowerBtn = document.getElementById('dewShowerBtn');
+
+      const sceneContainer = document.getElementById('sceneContainer');
+      const topHud = document.getElementById('topHud');
+      const bottomHud = document.getElementById('bottomHud');
+      const pure3dControls = document.getElementById('pure3dControls');
+
+      const headerDayBadge = document.getElementById('headerDayBadge');
+      const enter3dModeBtn = document.getElementById('enter3dModeBtn');
+      const exit3dModeBtn = document.getElementById('exit3dModeBtn');
+      const pure3dResetBtn = document.getElementById('pure3dResetBtn');
+
+      const growthJourneyBtn = document.getElementById('growthJourneyBtn');
+      const journeyPlayIcon = document.getElementById('journeyPlayIcon');
+      const journeyPauseIcon = document.getElementById('journeyPauseIcon');
+      const growthJourneyLabel = document.getElementById('growthJourneyLabel');
+
+      const metricStoryAge = document.getElementById('metricStoryAge');
+      const metricFullDate = document.getElementById('metricFullDate');
+      const metricTreeHeight = document.getElementById('metricTreeHeight');
+      const metricBloomCount = document.getElementById('metricBloomCount');
+      const metricElapsedDuration = document.getElementById('metricElapsedDuration');
+
+      const milestonePillsContainer = document.getElementById('milestonePillsContainer');
+      const daySlider = document.getElementById('daySlider');
+      const prevDayBtn = document.getElementById('prevDayBtn');
+      const nextDayBtn = document.getElementById('nextDayBtn');
+      const lockedTomorrowBtn = document.getElementById('lockedTomorrowBtn');
+      const countdownClock = document.getElementById('countdownClock');
+
+      const statusToast = document.getElementById('statusToast');
+      const toastTitle = document.getElementById('toastTitle');
+      const toastBody = document.getElementById('toastBody');
+
+      const rosePopover = document.getElementById('rosePopover');
+      const popoverBloomTitle = document.getElementById('popoverBloomTitle');
+      const popoverBloomStage = document.getElementById('popoverBloomStage');
+      const popoverBloomDate = document.getElementById('popoverBloomDate');
+      const popoverBloomAge = document.getElementById('popoverBloomAge');
+      const closePopoverBtn = document.getElementById('closePopoverBtn');
+
+      // =======================================================================
+      // 3. NON-BLOCKING AUDIO ENGINE (`song.mp3` + WARM MUSIC-BOX SYNTH)
+      // =======================================================================
+      let isAudioPlaying = false;
+      let usingSynthFallback = false;
+      let audioCtx = null;
+      let synthInterval = null;
+      let synthStep = 0;
+
+      const MUSIC_BOX_MELODY = [
+        523.25, 659.25, 783.99, 880.00, 1046.50, 880.00, 783.99, 659.25,
+        587.33, 698.46, 880.00, 1046.50, 1174.66, 1046.50, 880.00, 698.46,
+        523.25, 659.25, 783.99, 1046.50, 987.77, 783.99, 659.25, 587.33
+      ];
+
+      function ensureAudioContext() {
+        try {
+          if (!audioCtx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) audioCtx = new Ctx();
+          }
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+        } catch (e) {}
+      }
+
+      function playPluckNote(freq, volume, duration) {
+        if (volume === undefined) volume = 0.065;
+        if (duration === undefined) duration = 1.65;
+        try {
+          ensureAudioContext();
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const sub = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          sub.type = 'triangle';
+          sub.frequency.setValueAtTime(freq * 0.5, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(volume, now + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          osc.connect(gain);
+          sub.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(now);
+          sub.start(now);
+          osc.stop(now + duration + 0.04);
+          sub.stop(now + duration + 0.04);
+        } catch (e) {}
+      }
+
+      function playSparkleChime() {
+        const notes = [659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        notes.forEach(function (f, idx) {
+          setTimeout(function () {
+            playPluckNote(f, 0.055, 1.1);
+          }, idx * 65);
+        });
+      }
+
+      function updateAudioUI(playing) {
+        isAudioPlaying = playing;
+        if (playing) {
+          audioPlayingIcon.classList.remove('hidden');
+          audioPausedIcon.classList.add('hidden');
+        } else {
+          audioPlayingIcon.classList.add('hidden');
+          audioPausedIcon.classList.remove('hidden');
+        }
+      }
+
+      function stopSynthMusicBox() {
+        if (synthInterval) {
+          clearInterval(synthInterval);
+          synthInterval = null;
+        }
+      }
+
+      function startSynthMusicBox() {
+        stopSynthMusicBox();
+        usingSynthFallback = true;
+        updateAudioUI(true);
+        playPluckNote(MUSIC_BOX_MELODY[0], 0.06, 1.8);
+        synthStep = 1;
+        synthInterval = setInterval(function () {
+          if (!isAudioPlaying) return;
+          const freq = MUSIC_BOX_MELODY[synthStep % MUSIC_BOX_MELODY.length];
+          playPluckNote(freq, 0.06, 1.85);
+          synthStep++;
+        }, 480);
+      }
+
+      function startGardenAudio() {
+        if (!bgMusic) {
+          startSynthMusicBox();
+          return;
+        }
+        try {
+          bgMusic.volume = 0.72;
+          const playPromise = bgMusic.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise
+              .then(function () {
+                stopSynthMusicBox();
+                usingSynthFallback = false;
+                updateAudioUI(true);
+              })
+              .catch(function () {
+                startSynthMusicBox();
+              });
+          } else {
+            updateAudioUI(true);
+          }
+        } catch (err) {
+          startSynthMusicBox();
+        }
+      }
+
+      function pauseGardenAudio() {
+        try {
+          if (bgMusic && !bgMusic.paused) bgMusic.pause();
+        } catch (e) {}
+        stopSynthMusicBox();
+        updateAudioUI(false);
+      }
+
+      audioToggleBtn.addEventListener('click', function () {
+        if (isAudioPlaying) {
+          pauseGardenAudio();
+        } else {
+          if (usingSynthFallback) {
+            startSynthMusicBox();
+          } else {
+            startGardenAudio();
+          }
+        }
+      });
+
+      uploadMp3Btn.addEventListener('click', function () {
+        customAudioFileInput.click();
+      });
+
+      customAudioFileInput.addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const objectUrl = URL.createObjectURL(file);
+        stopSynthMusicBox();
+        usingSynthFallback = false;
+        bgMusic.src = objectUrl;
+        bgMusic.load();
+        startGardenAudio();
+        showToast('تم تشغيل الأغنية المختارة', 'يتم الآن عزف: ' + file.name);
+      });
+
+      // =======================================================================
+      // 4. DETERMINISTIC PRNG & MULTI-TONE BURGUNDY ROSE TEXTURES
+      // =======================================================================
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return function () {
+          a |= 0;
+          a = (a + 0x6D2B79F5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      // Luminous Multi-Tone Velvet Burgundy-to-Rose-Berry Petal Texture (Matching User Photo)
+      function createVelvetBurgundyPetalTextures() {
+        const size = 512;
+        const diffCanvas = document.createElement('canvas');
+        diffCanvas.width = size;
+        diffCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = size;
+        bumpCanvas.height = size;
+        const bCtx = bumpCanvas.getContext('2d');
+
+        // Deep burgundy velvet base -> rich crimson-berry center -> soft rose-pink recurved outer margin
+        const grad = dCtx.createLinearGradient(0, size, 0, 0);
+        grad.addColorStop(0.0, '#360312');
+        grad.addColorStop(0.22, '#5e0820');
+        grad.addColorStop(0.52, '#911437');
+        grad.addColorStop(0.76, '#bd2852');
+        grad.addColorStop(0.92, '#de547a');
+        grad.addColorStop(1.0, '#f493ae');
+        dCtx.fillStyle = grad;
+        dCtx.fillRect(0, 0, size, size);
+
+        // Soft sunlit radial glow across the upper petal cup
+        const rimGrad = dCtx.createRadialGradient(
+          size * 0.5, size * 0.56, size * 0.10,
+          size * 0.5, size * 0.34, size * 0.56
+        );
+        rimGrad.addColorStop(0.0, 'rgba(90, 8, 30, 0.0)');
+        rimGrad.addColorStop(0.68, 'rgba(195, 42, 84, 0.16)');
+        rimGrad.addColorStop(1.0, 'rgba(248, 160, 185, 0.42)');
+        dCtx.fillStyle = rimGrad;
+        dCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Delicate radiating botanical veins (visible like the reference photo)
+        const rand = mulberry32(99103);
+        for (let i = 0; i < 120; i++) {
+          const t = i / 119;
+          const startX = size * (0.34 + t * 0.32);
+          const endX = size * (0.02 + t * 0.96);
+          const ctrlX = (startX + endX) * 0.5 + (t - 0.5) * 40;
+
+          dCtx.strokeStyle = 'rgba(65, 5, 22, ' + (0.10 + rand() * 0.12).toFixed(2) + ')';
+          dCtx.lineWidth = 0.7 + rand() * 1.1;
+          dCtx.beginPath();
+          dCtx.moveTo(startX, size);
+          dCtx.quadraticCurveTo(ctrlX, size * 0.45, endX, 0);
+          dCtx.stroke();
+
+          bCtx.strokeStyle = 'rgba(180, 180, 180, ' + (0.20 + rand() * 0.20).toFixed(2) + ')';
+          bCtx.lineWidth = 0.9 + rand() * 0.8;
+          bCtx.beginPath();
+          bCtx.moveTo(startX, size);
+          bCtx.quadraticCurveTo(ctrlX, size * 0.45, endX, 0);
+          bCtx.stroke();
+        }
+
+        const map = new THREE.CanvasTexture(diffCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        return { map: map, bumpMap: bumpMap };
+      }
+
+      function createGlossyRoseLeafTextures() {
+        const size = 256;
+        const diffCanvas = document.createElement('canvas');
+        diffCanvas.width = size;
+        diffCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = size;
+        bumpCanvas.height = size;
+        const bCtx = bumpCanvas.getContext('2d');
+
+        const grad = dCtx.createLinearGradient(0, size, 0, 0);
+        grad.addColorStop(0.0, '#143316');
+        grad.addColorStop(0.45, '#1d4720');
+        grad.addColorStop(0.85, '#2b612e');
+        grad.addColorStop(1.0, '#38753b');
+        dCtx.fillStyle = grad;
+        dCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        dCtx.strokeStyle = 'rgba(115, 175, 108, 0.62)';
+        dCtx.lineWidth = 2.4;
+        dCtx.beginPath();
+        dCtx.moveTo(size * 0.5, size);
+        dCtx.lineTo(size * 0.5, 4);
+        dCtx.stroke();
+
+        bCtx.strokeStyle = '#e2e2e2';
+        bCtx.lineWidth = 2.6;
+        bCtx.beginPath();
+        bCtx.moveTo(size * 0.5, size);
+        bCtx.lineTo(size * 0.5, 4);
+        bCtx.stroke();
+
+        for (let v = 1; v <= 8; v++) {
+          const y = size * (1 - v / 9.2);
+          const span = size * 0.43 * Math.sin((v / 9) * Math.PI);
+          [-1, 1].forEach(function (dir) {
+            dCtx.strokeStyle = 'rgba(100, 160, 95, 0.45)';
+            dCtx.lineWidth = 1.2;
+            dCtx.beginPath();
+            dCtx.moveTo(size * 0.5, y);
+            dCtx.quadraticCurveTo(size * 0.5 + dir * span * 0.5, y - 5, size * 0.5 + dir * span, y - 15);
+            dCtx.stroke();
+
+            bCtx.strokeStyle = '#c4c4c4';
+            bCtx.lineWidth = 1.3;
+            dCtx.beginPath();
+            bCtx.moveTo(size * 0.5, y);
+            bCtx.lineTo(size * 0.5 + dir * span, y - 15);
+            bCtx.stroke();
+          });
+        }
+
+        return {
+          map: new THREE.CanvasTexture(diffCanvas),
+          bumpMap: new THREE.CanvasTexture(bumpCanvas)
+        };
+      }
+
+      function createRoseStemTextures() {
+        const size = 256;
+        const diffCanvas = document.createElement('canvas');
+        diffCanvas.width = size;
+        diffCanvas.height = size;
+        const dCtx = diffCanvas.getContext('2d');
+
+        const stemGrad = dCtx.createLinearGradient(0, size, 0, 0);
+        stemGrad.addColorStop(0.0, '#453829');
+        stemGrad.addColorStop(0.38, '#3b4728');
+        stemGrad.addColorStop(0.85, '#315c27');
+        stemGrad.addColorStop(1.0, '#3e692c');
+        dCtx.fillStyle = stemGrad;
+        dCtx.fillRect(0, 0, size, size);
+
+        const rand = mulberry32(77319);
+        for (let i = 0; i < 160; i++) {
+          const x = rand() * size;
+          const y = rand() * size;
+          const len = 30 + rand() * 80;
+          dCtx.strokeStyle = rand() > 0.45 ? 'rgba(92, 122, 66, 0.25)' : 'rgba(32, 24, 18, 0.25)';
+          dCtx.lineWidth = 1 + rand() * 1.8;
+          dCtx.beginPath();
+          dCtx.moveTo(x, y);
+          dCtx.lineTo(x, y + len);
+          dCtx.stroke();
+        }
+
+        const map = new THREE.CanvasTexture(diffCanvas);
+        map.wrapS = THREE.RepeatWrapping;
+        map.wrapT = THREE.ClampToEdgeWrapping;
+        return { map: map };
+      }
+
+      // =======================================================================
+      // 5. CUSTOM 3D BOTANICAL GEOMETRIES
+      // =======================================================================
+      function createTaperedTubeGeometry(curve, tubularSegments, radiusStart, radiusEnd, radialSegments) {
+        const frames = curve.computeFrenetFrames(tubularSegments, false);
+        const positions = [];
+        const normals = [];
+        const uvs = [];
+        const indices = [];
+
+        const vertex = new THREE.Vector3();
+        const normal = new THREE.Vector3();
+
+        for (let i = 0; i <= tubularSegments; i++) {
+          const u = i / tubularSegments;
+          const pos = curve.getPointAt(u);
+          const N = frames.normals[i];
+          const B = frames.binormals[i];
+
+          const rootFlare = i < 4 ? Math.pow(1 - i / 4, 2) * radiusStart * 0.22 : 0;
+          const radius = radiusStart * Math.pow(1 - u, 0.72) + radiusEnd * u + rootFlare;
+
+          for (let j = 0; j <= radialSegments; j++) {
+            const v = (j / radialSegments) * Math.PI * 2;
+            const sin = Math.sin(v);
+            const cos = -Math.cos(v);
+
+            normal.x = cos * N.x + sin * B.x;
+            normal.y = cos * N.y + sin * B.y;
+            normal.z = cos * N.z + sin * B.z;
+            normal.normalize();
+
+            vertex.x = pos.x + radius * normal.x;
+            vertex.y = pos.y + radius * normal.y;
+            vertex.z = pos.z + radius * normal.z;
+
+            positions.push(vertex.x, vertex.y, vertex.z);
+            normals.push(normal.x, normal.y, normal.z);
+            uvs.push(j / radialSegments, u);
+          }
+        }
+
+        for (let j = 1; j <= tubularSegments; j++) {
+          for (let i = 1; i <= radialSegments; i++) {
+            const a = (radialSegments + 1) * (j - 1) + (i - 1);
+            const b = (radialSegments + 1) * j + (i - 1);
+            const c = (radialSegments + 1) * j + i;
+            const d = (radialSegments + 1) * (j - 1) + i;
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setIndex(indices);
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        return geo;
+      }
+
+      function createHookedThornGeometry() {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0, 0.004, 0.011),
+          new THREE.Vector3(0, -0.003, 0.022)
+        ]);
+        return createTaperedTubeGeometry(curve, 6, 0.0052, 0.0005, 6);
+      }
+
+      // Sculpted Hybrid Tea / English Garden Rose Petal Geometry with Recurve & Ruffled Rim
+      function createBotanicalRosePetalGeometry(widthScale, heightScale, cupDepth, curlBack, ruffleAmp) {
+        const segU = 11;
+        const segV = 13;
+        const positions = [];
+        const uvs = [];
+        const colors = [];
+        const indices = [];
+
+        for (let iv = 0; iv <= segV; iv++) {
+          const v = iv / segV;
+          const widthEnv = Math.sin(Math.pow(v, 0.64) * Math.PI) * 0.92 + Math.sin(v * Math.PI * 0.5) * 0.26;
+          const y = v * heightScale;
+
+          for (let iu = 0; iu <= segU; iu++) {
+            const u = iu / segU;
+            const s = (u - 0.5) * 2;
+
+            const centerCrest = v > 0.76
+              ? Math.cos(s * Math.PI * 0.5) * 0.052 * heightScale * ((v - 0.76) / 0.24)
+              : 0;
+            const x = s * 0.5 * widthScale * widthEnv;
+            const lateralCup = (1 - s * s) * Math.sin(v * Math.PI) * cupDepth;
+
+            const lipFactor = v > 0.50 ? Math.pow((v - 0.50) / 0.50, 1.6) : 0;
+            const lipRecurve = lipFactor * curlBack * (0.40 + 0.60 * s * s);
+            const marginRuffle = lipFactor * ruffleAmp * Math.sin(s * Math.PI * 2.2) * (0.35 + 0.65 * Math.abs(s));
+
+            const z = -lateralCup + lipRecurve + marginRuffle;
+
+            positions.push(x, y + centerCrest, z);
+            uvs.push(u, v);
+
+            const edgeGlow = Math.pow(v, 1.2) * 0.34 + Math.abs(s) * 0.08;
+            const rCol = Math.min(1.0, 0.78 + edgeGlow);
+            const gCol = Math.min(1.0, 0.70 + edgeGlow * 0.95);
+            const bCol = Math.min(1.0, 0.74 + edgeGlow * 0.98);
+            colors.push(rCol, gCol, bCol);
+          }
+        }
+
+        for (let iv = 0; iv < segV; iv++) {
+          for (let iu = 0; iu < segU; iu++) {
+            const a = iv * (segU + 1) + iu;
+            const b = (iv + 1) * (segU + 1) + iu;
+            const c = (iv + 1) * (segU + 1) + (iu + 1);
+            const d = iv * (segU + 1) + (iu + 1);
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setIndex(indices);
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createSerratedLeafletGeometry(length, width) {
+        const segU = 6;
+        const segV = 12;
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+
+        for (let iv = 0; iv <= segV; iv++) {
+          const v = iv / segV;
+          const baseProfile = Math.sin(Math.pow(v, 0.70) * Math.PI);
+          const serration = (iv > 1 && iv < segV - 1) ? (iv % 2 === 0 ? 1.08 : 0.91) : 1.0;
+          const halfW = 0.5 * width * baseProfile * serration;
+          const y = v * length;
+          const archZ = -Math.pow(v, 1.85) * length * 0.15;
+
+          for (let iu = 0; iu <= segU; iu++) {
+            const u = iu / segU;
+            const s = (u - 0.5) * 2;
+            const x = s * halfW;
+            const vFold = Math.abs(s) * width * 0.10;
+            positions.push(x, y, archZ + vFold);
+            uvs.push(u, v);
+          }
+        }
+
+        for (let iv = 0; iv < segV; iv++) {
+          for (let iu = 0; iu < segU; iu++) {
+            const a = iv * (segU + 1) + iu;
+            const b = (iv + 1) * (segU + 1) + iu;
+            const c = (iv + 1) * (segU + 1) + (iu + 1);
+            const d = iv * (segU + 1) + (iu + 1);
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setIndex(indices);
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      function createMergedCalyxGeometry() {
+        const sepalGeo = createSerratedLeafletGeometry(0.068, 0.020);
+        const positions = [];
+        const normals = [];
+        const indices = [];
+        let vertexOffset = 0;
+
+        const recGeo = new THREE.SphereGeometry(0.022, 10, 8);
+        recGeo.scale(1, 1.32, 1);
+        const rPos = recGeo.attributes.position;
+        const rNorm = recGeo.attributes.normal;
+        const rIdx = recGeo.index;
+        for (let i = 0; i < rPos.count; i++) {
+          positions.push(rPos.getX(i), rPos.getY(i), rPos.getZ(i));
+          normals.push(rNorm.getX(i), rNorm.getY(i), rNorm.getZ(i));
+        }
+        for (let i = 0; i < rIdx.count; i++) {
+          indices.push(rIdx.getX(i));
+        }
+        vertexOffset += rPos.count;
+
+        const dummy = new THREE.Object3D();
+        const vTmp = new THREE.Vector3();
+        const nTmp = new THREE.Vector3();
+        const sPos = sepalGeo.attributes.position;
+        const sNorm = sepalGeo.attributes.normal;
+        const sIdx = sepalGeo.index;
+
+        for (let s = 0; s < 5; s++) {
+          const yaw = (s / 5) * Math.PI * 2 + 0.18;
+          dummy.position.set(Math.sin(yaw) * 0.015, 0.010, Math.cos(yaw) * 0.015);
+          dummy.rotation.set(1.38, yaw, 0, 'YXZ');
+          dummy.updateMatrix();
+          const normMat = new THREE.Matrix3().getNormalMatrix(dummy.matrix);
+
+          for (let i = 0; i < sPos.count; i++) {
+            vTmp.fromBufferAttribute(sPos, i).applyMatrix4(dummy.matrix);
+            nTmp.fromBufferAttribute(sNorm, i).applyMatrix3(normMat).normalize();
+            positions.push(vTmp.x, vTmp.y, vTmp.z);
+            normals.push(nTmp.x, nTmp.y, nTmp.z);
+          }
+          for (let i = 0; i < sIdx.count; i++) {
+            indices.push(sIdx.getX(i) + vertexOffset);
+          }
+          vertexOffset += sPos.count;
+        }
+
+        const merged = new THREE.BufferGeometry();
+        merged.setIndex(indices);
+        merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        return merged;
+      }
+
+      function createCurvedGrassBladeGeometry() {
+        const segs = 4;
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+        const baseW = 0.016;
+        const height = 0.18;
+
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const w = baseW * (1 - Math.pow(t, 1.35));
+          const y = t * height;
+          const bendZ = Math.pow(t, 2.1) * 0.048;
+
+          positions.push(-w * 0.5, y, bendZ);
+          positions.push(w * 0.5, y, bendZ);
+          uvs.push(0, t, 1, t);
+        }
+
+        for (let i = 0; i < segs; i++) {
+          const a = i * 2;
+          const b = a + 1;
+          const c = a + 2;
+          const d = a + 3;
+          indices.push(a, b, c);
+          indices.push(b, d, c);
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setIndex(indices);
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      // =======================================================================
+      // 6. THREE.JS SCENE, PROCEDURAL SKY DOME & LUSH OUTDOOR GARDEN
+      // =======================================================================
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0xcfe4d2, 0.020);
+
+      const camera = new THREE.PerspectiveCamera(
+        39,
+        window.innerWidth / window.innerHeight,
+        0.08,
+        90
+      );
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: 'high-performance'
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      sceneContainer.appendChild(renderer.domElement);
+
+      // Custom Gradient Sky Dome (Zero external module dependencies)
+      const skyVertexShader = [
+        'varying vec3 vWorldPosition;',
+        'void main() {',
+        '  vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+        '  vWorldPosition = worldPosition.xyz;',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+        '}'
+      ].join('\n');
+
+      const skyFragmentShader = [
+        'uniform vec3 topColor;',
+        'uniform vec3 horizonColor;',
+        'uniform vec3 bottomColor;',
+        'uniform vec3 sunDir;',
+        'uniform vec3 sunColor;',
+        'varying vec3 vWorldPosition;',
+        'void main() {',
+        '  vec3 dir = normalize(vWorldPosition);',
+        '  float h = clamp(dir.y, 0.0, 1.0);',
+        '  vec3 col = mix(horizonColor, topColor, pow(h, 0.55));',
+        '  if (dir.y < 0.0) col = mix(horizonColor, bottomColor, clamp(-dir.y * 3.0, 0.0, 1.0));',
+        '  float sunAmt = max(dot(dir, normalize(sunDir)), 0.0);',
+        '  col += sunColor * pow(sunAmt, 24.0) * 0.45;',
+        '  col += sunColor * smoothstep(0.996, 0.9995, sunAmt) * 0.85;',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '}'
+      ].join('\n');
+
+      const skyUniforms = {
+        topColor: { value: new THREE.Color(0x4b8ad8) },
+        horizonColor: { value: new THREE.Color(0xdcf0e6) },
+        bottomColor: { value: new THREE.Color(0x365c2c) },
+        sunDir: { value: new THREE.Vector3(-0.55, 0.52, -0.65) },
+        sunColor: { value: new THREE.Color(0xfff3d6) }
+      };
+
+      const skyDome = new THREE.Mesh(
+        new THREE.SphereGeometry(55, 32, 20),
+        new THREE.ShaderMaterial({
+          vertexShader: skyVertexShader,
+          fragmentShader: skyFragmentShader,
+          uniforms: skyUniforms,
+          side: THREE.BackSide,
+          depthWrite: false
+        })
+      );
+      scene.add(skyDome);
+
+      // Outdoor Lighting
+      const hemiLight = new THREE.HemisphereLight(0xf8fbff, 0x385e2b, 1.15);
+      scene.add(hemiLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfff5e0, 2.45);
+      sunLight.position.set(-6.0, 7.5, 6.5);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 1536;
+      sunLight.shadow.mapSize.height = 1536;
+      sunLight.shadow.camera.near = 1.0;
+      sunLight.shadow.camera.far = 22;
+      const shadowExtent = 2.6;
+      sunLight.shadow.camera.left = -shadowExtent;
+      sunLight.shadow.camera.right = shadowExtent;
+      sunLight.shadow.camera.top = shadowExtent + 0.8;
+      sunLight.shadow.camera.bottom = -shadowExtent;
+      sunLight.shadow.bias = -0.0005;
+      scene.add(sunLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffdfea, 1.15);
+      rimLight.position.set(3.5, 3.0, -3.5);
+      scene.add(rimLight);
+
+      const nightGardenLight = new THREE.PointLight(0xffcf87, 0.0, 6.5, 1.5);
+      nightGardenLight.position.set(0.4, 1.45, 0.65);
+      scene.add(nightGardenLight);
+
+      // Soft Drifting Clouds
+      let cloudInstancedMesh = null;
+      const cloudData = [];
+      (function buildSoftSkyClouds() {
+        const cloudCanvas = document.createElement('canvas');
+        cloudCanvas.width = 128;
+        cloudCanvas.height = 128;
+        const cCtx = cloudCanvas.getContext('2d');
+        const cGrad = cCtx.createRadialGradient(64, 64, 6, 64, 64, 62);
+        cGrad.addColorStop(0.0, 'rgba(255, 252, 248, 0.68)');
+        cGrad.addColorStop(0.45, 'rgba(252, 248, 242, 0.28)');
+        cGrad.addColorStop(1.0, 'rgba(252, 248, 242, 0.0)');
+        cCtx.fillStyle = cGrad;
+        cCtx.fillRect(0, 0, 128, 128);
+
+        const cloudTex = new THREE.CanvasTexture(cloudCanvas);
+        const cloudGeo = new THREE.PlaneGeometry(5.8, 2.7);
+        const cloudMat = new THREE.MeshBasicMaterial({
+          map: cloudTex,
+          transparent: true,
+          depthWrite: false,
+          opacity: 0.72
+        });
+
+        const count = 16;
+        cloudInstancedMesh = new THREE.InstancedMesh(cloudGeo, cloudMat, count);
+        const rand = mulberry32(31415);
+        const dummy = new THREE.Object3D();
+
+        for (let i = 0; i < count; i++) {
+          const ang = (i / count) * Math.PI * 2 + rand() * 0.3;
+          const dist = 16 + rand() * 14;
+          const y = 5.5 + rand() * 5.0;
+          const scale = 0.85 + rand() * 1.1;
+
+          cloudData.push({ ang: ang, dist: dist, y: y, scale: scale, speed: 0.008 + rand() * 0.008 });
+
+          dummy.position.set(Math.cos(ang) * dist, y, Math.sin(ang) * dist);
+          dummy.lookAt(0, y * 0.7, 0);
+          dummy.scale.set(scale, scale * 0.7, 1);
+          dummy.updateMatrix();
+          cloudInstancedMesh.setMatrixAt(i, dummy.matrix);
+        }
+        cloudInstancedMesh.instanceMatrix.needsUpdate = true;
+        scene.add(cloudInstancedMesh);
+      })();
+
+      // Lush Surrounding Garden Lawn, Sculpted Planter, Stepping Stones, Grass & Trees
+      (function buildNaturalOutdoorGarden() {
+        const rand = mulberry32(60119);
+
+        // 1. Lush Sunlit Garden Meadow Ground Plane
+        const groundCanvas = document.createElement('canvas');
+        groundCanvas.width = 256;
+        groundCanvas.height = 256;
+        const gCtx = groundCanvas.getContext('2d');
+        gCtx.fillStyle = '#335727';
+        gCtx.fillRect(0, 0, 256, 256);
+        const groundTones = ['#28471e', '#3b632d', '#467036', '#233f1a'];
+        for (let i = 0; i < 2000; i++) {
+          gCtx.fillStyle = groundTones[i % groundTones.length];
+          gCtx.fillRect(rand() * 256, rand() * 256, 2 + rand() * 3, 2 + rand() * 3);
+        }
+        const groundTex = new THREE.CanvasTexture(groundCanvas);
+        groundTex.wrapS = THREE.RepeatWrapping;
+        groundTex.wrapT = THREE.RepeatWrapping;
+        groundTex.repeat.set(22, 22);
+
+        const groundMesh = new THREE.Mesh(
+          new THREE.CircleGeometry(36, 48),
+          new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.92, metalness: 0.0 })
+        );
+        groundMesh.rotation.x = -Math.PI / 2;
+        groundMesh.position.y = -0.02;
+        groundMesh.receiveShadow = true;
+        scene.add(groundMesh);
+
+        // 2. Sculpted Limestone / Travertine Garden Planter Ring & Rich Soil Bed
+        const planterMat = new THREE.MeshStandardMaterial({
+          color: 0xe6dcc8,
+          roughness: 0.72,
+          metalness: 0.04
+        });
+        const planterRim = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.62, 0.56, 0.14, 36, 1, true),
+          planterMat
+        );
+        planterRim.position.y = 0.04;
+        planterRim.castShadow = true;
+        planterRim.receiveShadow = true;
+        scene.add(planterRim);
+
+        const planterLip = new THREE.Mesh(
+          new THREE.TorusGeometry(0.60, 0.035, 12, 40),
+          planterMat
+        );
+        planterLip.rotation.x = Math.PI / 2;
+        planterLip.position.y = 0.105;
+        planterLip.castShadow = true;
+        planterLip.receiveShadow = true;
+        scene.add(planterLip);
+
+        const soilBedGeo = new THREE.SphereGeometry(0.58, 28, 14, 0, Math.PI * 2, 0, Math.PI * 0.46);
+        const soilBedMat = new THREE.MeshStandardMaterial({
+          color: 0x2b1d14,
+          roughness: 0.96
+        });
+        const soilBedMesh = new THREE.Mesh(soilBedGeo, soilBedMat);
+        soilBedMesh.scale.set(1.0, 0.16, 1.0);
+        soilBedMesh.position.y = 0.01;
+        soilBedMesh.receiveShadow = true;
+        scene.add(soilBedMesh);
+
+        // 3. Natural Garden Stepping Stones
+        const stoneGeo = new THREE.DodecahedronGeometry(0.085, 1);
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x9c9488, roughness: 0.82 });
+        const stoneCount = 24;
+        const stoneInstanced = new THREE.InstancedMesh(stoneGeo, stoneMat, stoneCount);
+        const dummy = new THREE.Object3D();
+
+        for (let s = 0; s < stoneCount; s++) {
+          const ang = (s / stoneCount) * Math.PI * 2 + (rand() - 0.5) * 0.12;
+          const rad = 0.68 + (rand() - 0.5) * 0.06;
+          dummy.position.set(Math.cos(ang) * rad, 0.005, Math.sin(ang) * rad);
+          dummy.rotation.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);
+          dummy.scale.set(0.95 + rand() * 0.55, 0.35 + rand() * 0.22, 0.85 + rand() * 0.45);
+          dummy.updateMatrix();
+          stoneInstanced.setMatrixAt(s, dummy.matrix);
+        }
+        stoneInstanced.instanceMatrix.needsUpdate = true;
+        scene.add(stoneInstanced);
+
+        // 4. 3,000 Curved 3D Grass Blades
+        const grassGeo = createCurvedGrassBladeGeometry();
+        const grassMat = new THREE.MeshStandardMaterial({
+          color: 0x457a34,
+          roughness: 0.74,
+          side: THREE.DoubleSide
+        });
+        const grassCount = 3000;
+        const grassInstanced = new THREE.InstancedMesh(grassGeo, grassMat, grassCount);
+        grassInstanced.receiveShadow = true;
+
+        for (let g = 0; g < grassCount; g++) {
+          const rNorm = Math.pow(rand(), 0.62);
+          const rad = 0.72 + rNorm * 7.5;
+          const ang = rand() * Math.PI * 2;
+          dummy.position.set(Math.cos(ang) * rad, -0.02, Math.sin(ang) * rad);
+          dummy.rotation.set((rand() - 0.5) * 0.18, rand() * Math.PI * 2, (rand() - 0.5) * 0.18);
+          const hScale = (0.65 + rand() * 0.95) * (rad < 0.90 ? 0.75 : 1.0);
+          dummy.scale.set(0.8 + rand() * 0.6, hScale, 0.8 + rand() * 0.6);
+          dummy.updateMatrix();
+          grassInstanced.setMatrixAt(g, dummy.matrix);
+        }
+        grassInstanced.instanceMatrix.needsUpdate = true;
+        scene.add(grassInstanced);
+
+        // 5. Distant Garden Trees & Shrubs
+        const treeCount = 22;
+        const trunkGeo = new THREE.CylinderGeometry(0.08, 0.14, 1.8, 7);
+        trunkGeo.translate(0, 0.9, 0);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x453629, roughness: 0.90 });
+        const treeTrunks = new THREE.InstancedMesh(trunkGeo, trunkMat, treeCount);
+
+        const canopyGeo = new THREE.DodecahedronGeometry(1.15, 1);
+        const canopyMat = new THREE.MeshStandardMaterial({ color: 0x3b6330, roughness: 0.85 });
+        const treeCanopies = new THREE.InstancedMesh(canopyGeo, canopyMat, treeCount);
+
+        for (let t = 0; t < treeCount; t++) {
+          const ang = (t / treeCount) * Math.PI * 2 + rand() * 0.18;
+          const dist = 7.5 + rand() * 7.5;
+          const tx = Math.cos(ang) * dist;
+          const tz = Math.sin(ang) * dist;
+          const tScale = 0.9 + rand() * 0.85;
+
+          dummy.position.set(tx, -0.02, tz);
+          dummy.rotation.set(0, rand() * Math.PI * 2, 0);
+          dummy.scale.set(tScale, tScale * (0.9 + rand() * 0.35), tScale);
+          dummy.updateMatrix();
+          treeTrunks.setMatrixAt(t, dummy.matrix);
+
+          dummy.position.set(tx, 1.75 * tScale, tz);
+          dummy.rotation.set(rand() * 0.3, rand() * Math.PI * 2, rand() * 0.3);
+          dummy.scale.set(tScale * 1.15, tScale * (0.95 + rand() * 0.4), tScale * 1.15);
+          dummy.updateMatrix();
+          treeCanopies.setMatrixAt(t, dummy.matrix);
+        }
+        treeTrunks.instanceMatrix.needsUpdate = true;
+        treeCanopies.instanceMatrix.needsUpdate = true;
+        scene.add(treeTrunks);
+        scene.add(treeCanopies);
+      })();
+
+      // =======================================================================
+      // 7. BUTTERFLIES, POLLEN / FIREFLIES & DEW SHOWER EFFECTS
+      // =======================================================================
+      const butterflies = [];
+      const butterflyGroup = new THREE.Group();
+      scene.add(butterflyGroup);
+
+      (function buildFlutteringButterflies() {
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(0, 0);
+        wingShape.bezierCurveTo(0.022, 0.028, 0.048, 0.032, 0.042, 0.006);
+        wingShape.bezierCurveTo(0.036, -0.015, 0.016, -0.024, 0, 0);
+        const wingGeo = new THREE.ShapeGeometry(wingShape);
+
+        const wingColors = [0xf5d076, 0xf29bb2, 0xffdf9e, 0xe87696];
+        for (let i = 0; i < 4; i++) {
+          const bRoot = new THREE.Group();
+          const mat = new THREE.MeshStandardMaterial({
+            color: wingColors[i % wingColors.length],
+            roughness: 0.4,
+            side: THREE.DoubleSide,
+            emissive: wingColors[i % wingColors.length],
+            emissiveIntensity: 0.18
+          });
+
+          const leftWing = new THREE.Mesh(wingGeo, mat);
+          const rightWing = new THREE.Mesh(wingGeo, mat);
+          rightWing.scale.x = -1;
+
+          bRoot.add(leftWing);
+          bRoot.add(rightWing);
+          butterflyGroup.add(bRoot);
+
+          butterflies.push({
+            root: bRoot,
+            leftWing: leftWing,
+            rightWing: rightWing,
+            orbitRadius: 0.45 + i * 0.16,
+            baseHeight: 0.65 + i * 0.25,
+            speed: 0.55 + i * 0.14,
+            phase: i * 1.57,
+            flapSpeed: 13 + i * 1.5
+          });
+        }
+      })();
+
+      // Golden Sunlit Pollen & Night Fireflies
+      const pollenCount = 70;
+      const pollenGeo = new THREE.BufferGeometry();
+      const pollenPositions = new Float32Array(pollenCount * 3);
+      for (let i = 0; i < pollenCount; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const rad = 0.2 + Math.random() * 1.8;
+        pollenPositions[i * 3] = Math.cos(ang) * rad;
+        pollenPositions[i * 3 + 1] = 0.2 + Math.random() * 2.1;
+        pollenPositions[i * 3 + 2] = Math.sin(ang) * rad;
+      }
+      pollenGeo.setAttribute('position', new THREE.BufferAttribute(pollenPositions, 3));
+      const pollenMat = new THREE.PointsMaterial({
+        color: 0xffe89e,
+        size: 0.028,
+        transparent: true,
+        opacity: 0.78,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const pollenPoints = new THREE.Points(pollenGeo, pollenMat);
+      scene.add(pollenPoints);
+
+      // Dew Shower Droplets & Floating 3D Petal Burst Pools
+      const DEW_DROP_COUNT = 85;
+      const dewParticleGeo = new THREE.SphereGeometry(0.008, 6, 6);
+      const dewParticleMat = new THREE.MeshStandardMaterial({
+        color: 0xdff8ff,
+        roughness: 0.08,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.86
+      });
+      const dewShowerMesh = new THREE.InstancedMesh(dewParticleGeo, dewParticleMat, DEW_DROP_COUNT);
+      dewShowerMesh.frustumCulled = false;
+      scene.add(dewShowerMesh);
+
+      const dewParticles = [];
+      for (let i = 0; i < DEW_DROP_COUNT; i++) {
+        dewParticles.push({
+          active: false,
+          pos: new THREE.Vector3(0, -10, 0),
+          vel: new THREE.Vector3(),
+          scale: 1
+        });
+      }
+
+      const BURST_PETAL_COUNT = 36;
+      const burstPetalGeo = createBotanicalRosePetalGeometry(0.045, 0.055, 0.010, 0.008, 0.002);
+      const burstPetalMat = new THREE.MeshStandardMaterial({
+        color: 0xc92a52,
+        roughness: 0.52,
+        side: THREE.DoubleSide
+      });
+      const burstPetalMesh = new THREE.InstancedMesh(burstPetalGeo, burstPetalMat, BURST_PETAL_COUNT);
+      burstPetalMesh.frustumCulled = false;
+      scene.add(burstPetalMesh);
+
+      const burstPetals = [];
+      for (let i = 0; i < BURST_PETAL_COUNT; i++) {
+        burstPetals.push({
+          active: false,
+          pos: new THREE.Vector3(0, -10, 0),
+          vel: new THREE.Vector3(),
+          rot: new THREE.Euler(),
+          rotVel: new THREE.Vector3(),
+          scale: 0.7
+        });
+      }
+
+      function triggerPetalBurst(originVec, count) {
+        if (count === undefined) count = 14;
+        let spawned = 0;
+        for (let i = 0; i < BURST_PETAL_COUNT && spawned < count; i++) {
+          const bp = burstPetals[i];
+          if (!bp.active) {
+            bp.active = true;
+            bp.pos.copy(originVec).add(
+              new THREE.Vector3(
+                (Math.random() - 0.5) * 0.18,
+                (Math.random() - 0.2) * 0.15,
+                (Math.random() - 0.5) * 0.18
+              )
+            );
+            bp.vel.set(
+              (Math.random() - 0.5) * 0.45,
+              0.25 + Math.random() * 0.35,
+              (Math.random() - 0.5) * 0.45
+            );
+            bp.rot.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+            bp.rotVel.set(
+              (Math.random() - 0.5) * 3.5,
+              (Math.random() - 0.5) * 3.5,
+              (Math.random() - 0.5) * 3.5
+            );
+            bp.scale = 0.55 + Math.random() * 0.45;
+            spawned++;
+          }
+        }
+      }
+
+      function triggerMorningDewShower() {
+        playSparkleChime();
+        bushHappyImpulse = 1.0;
+
+        for (let i = 0; i < DEW_DROP_COUNT; i++) {
+          const dp = dewParticles[i];
+          dp.active = true;
+          const ang = Math.random() * Math.PI * 2;
+          const rad = Math.random() * 0.68;
+          dp.pos.set(Math.cos(ang) * rad, 1.75 + Math.random() * 0.75, Math.sin(ang) * rad);
+          dp.vel.set(
+            (Math.random() - 0.5) * 0.18,
+            -(1.1 + Math.random() * 0.75),
+            (Math.random() - 0.5) * 0.18
+          );
+          dp.scale = 0.7 + Math.random() * 0.7;
+        }
+
+        triggerPetalBurst(new THREE.Vector3(0, 1.25, 0), 18);
+        showToast(
+          'رشة ندى منعشة',
+          'تتلألأ قطرات الندى الآن على بتلات الورد البرغندي وأوراق الشجيرة.'
+        );
+      }
+
+      dewShowerBtn.addEventListener('click', triggerMorningDewShower);
+
+      // Atmosphere Switcher
+      const atmoButtons = document.querySelectorAll('.atmo-btn');
+      function setGardenAtmosphere(mode) {
+        atmoButtons.forEach(function (btn) {
+          if (btn.dataset.atmo === mode) {
+            btn.classList.add('bg-[#8c1636]', 'text-[#fff9fa]', 'shadow-sm');
+            btn.classList.remove('text-[#f5d5de]');
+          } else {
+            btn.classList.remove('bg-[#8c1636]', 'text-[#fff9fa]', 'shadow-sm');
+            btn.classList.add('text-[#f5d5de]');
+          }
+        });
+
+        if (mode === 'morning') {
+          skyUniforms.topColor.value.setHex(0x4b8ad8);
+          skyUniforms.horizonColor.value.setHex(0xdcf0e6);
+          skyUniforms.sunColor.value.setHex(0xfff3d6);
+          sunLight.color.setHex(0xfff5e0);
+          sunLight.intensity = 2.45;
+          hemiLight.color.setHex(0xf8fbff);
+          hemiLight.groundColor.setHex(0x385e2b);
+          hemiLight.intensity = 1.15;
+          rimLight.color.setHex(0xffdfea);
+          rimLight.intensity = 1.15;
+          nightGardenLight.intensity = 0.0;
+          scene.fog.color.setHex(0xcfe4d2);
+          pollenMat.color.setHex(0xffe89e);
+          pollenMat.size = 0.028;
+        } else if (mode === 'sunset') {
+          skyUniforms.topColor.value.setHex(0x4a2545);
+          skyUniforms.horizonColor.value.setHex(0xf2a679);
+          skyUniforms.sunColor.value.setHex(0xffb870);
+          sunLight.color.setHex(0xffb870);
+          sunLight.intensity = 2.35;
+          hemiLight.color.setHex(0xffd6b8);
+          hemiLight.groundColor.setHex(0x3b2a22);
+          hemiLight.intensity = 0.95;
+          rimLight.color.setHex(0xff9e80);
+          rimLight.intensity = 1.45;
+          nightGardenLight.intensity = 0.7;
+          scene.fog.color.setHex(0xd9b39a);
+          pollenMat.color.setHex(0xffba6b);
+          pollenMat.size = 0.032;
+        } else if (mode === 'night') {
+          skyUniforms.topColor.value.setHex(0x091124);
+          skyUniforms.horizonColor.value.setHex(0x1b2942);
+          skyUniforms.sunColor.value.setHex(0x8ab4ff);
+          sunLight.color.setHex(0x8ab4ff);
+          sunLight.intensity = 0.65;
+          hemiLight.color.setHex(0x2b3e63);
+          hemiLight.groundColor.setHex(0x111c16);
+          hemiLight.intensity = 0.65;
+          rimLight.color.setHex(0xd46888);
+          rimLight.intensity = 0.95;
+          nightGardenLight.intensity = 3.2;
+          scene.fog.color.setHex(0x0f1829);
+          pollenMat.color.setHex(0xc8ff69);
+          pollenMat.size = 0.044;
+        }
+      }
+
+      atmoButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          setGardenAtmosphere(btn.dataset.atmo);
+        });
+      });
+
+      // =======================================================================
+      // 8. INSTANCED 18-ROSE BUSH ARCHITECTURE (MATCHING USER REFERENCE PHOTO)
+      // =======================================================================
+      const stemTextures = createRoseStemTextures();
+      const stemMaterial = new THREE.MeshStandardMaterial({
+        map: stemTextures.map,
+        roughness: 0.68,
+        metalness: 0.02
+      });
+
+      const thornMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6e222b,
+        roughness: 0.50
+      });
+
+      const petalTextures = createVelvetBurgundyPetalTextures();
+      const velvetPetalMaterial = new THREE.MeshStandardMaterial({
+        map: petalTextures.map,
+        bumpMap: petalTextures.bumpMap,
+        bumpScale: 0.0055,
+        roughness: 0.54,
+        metalness: 0.02,
+        vertexColors: true,
+        side: THREE.DoubleSide
+      });
+
+      const leafTextures = createGlossyRoseLeafTextures();
+      const glossyLeafMaterial = new THREE.MeshStandardMaterial({
+        map: leafTextures.map,
+        bumpMap: leafTextures.bumpMap,
+        bumpScale: 0.008,
+        roughness: 0.34,
+        metalness: 0.04,
+        side: THREE.DoubleSide
+      });
+
+      const calyxMaterial = new THREE.MeshStandardMaterial({
+        color: 0x244a22,
+        roughness: 0.56,
+        side: THREE.DoubleSide
+      });
+
+      const dewdropMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.05,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      const roseBushGroup = new THREE.Group();
+      scene.add(roseBushGroup);
+
+      const caneControllers = [];
+      const roseDescriptors = [];
+      const leafletInstances = [];
+      const thornInstances = [];
+      const dewdropInstances = [];
+      const petalTierInstances = [[], [], []];
+      const interactiveRoseMeshes = [];
+
+      const petalTierGeos = [
+        createBotanicalRosePetalGeometry(0.038, 0.064, 0.017, 0.002, 0.0006),
+        createBotanicalRosePetalGeometry(0.066, 0.078, 0.022, 0.012, 0.0028),
+        createBotanicalRosePetalGeometry(0.098, 0.094, 0.019, 0.028, 0.0055)
+      ];
+      const mergedCalyxGeo = createMergedCalyxGeometry();
+      const leafletGeo = createSerratedLeafletGeometry(0.116, 0.062);
+      const thornGeo = createHookedThornGeometry();
+      const dewGeo = new THREE.SphereGeometry(0.004, 8, 8);
+      const hitSphereGeo = new THREE.SphereGeometry(0.13, 10, 8);
+      const hitSphereMat = new THREE.MeshBasicMaterial({ visible: false });
+
+      let petalTierMeshes = [];
+      let calyxInstancedMesh = null;
+      let leafletInstancedMesh = null;
+      let thornInstancedMesh = null;
+      let dewInstancedMesh = null;
+
+      (function buildInstancedBotanicalRoseBush() {
+        const rand = mulberry32(20250702);
+
+        // 1. Primary Woody-Green Main Cane (Crown Rose #1 at apex)
+        const mainTrunkPoints = [
+          new THREE.Vector3(0.0, 0.02, 0.0),
+          new THREE.Vector3(-0.030, 0.44, 0.020),
+          new THREE.Vector3(0.036, 0.90, -0.018),
+          new THREE.Vector3(-0.014, 1.34, 0.014),
+          new THREE.Vector3(0.006, 1.64, 0.0)
+        ];
+        const mainTrunkCurve = new THREE.CatmullRomCurve3(mainTrunkPoints);
+        const tubularSegs = 34;
+        const radialSegs = 9;
+        const mainTrunkGeo = createTaperedTubeGeometry(mainTrunkCurve, tubularSegs, 0.035, 0.0085, radialSegs);
+        const mainTrunkMesh = new THREE.Mesh(mainTrunkGeo, stemMaterial);
+        mainTrunkMesh.castShadow = true;
+        mainTrunkMesh.receiveShadow = true;
+        roseBushGroup.add(mainTrunkMesh);
+
+        caneControllers.push({
+          mesh: mainTrunkMesh,
+          geo: mainTrunkGeo,
+          curve: mainTrunkCurve,
+          totalIndices: tubularSegs * radialSegs * 6,
+          startDay: 0,
+          fullGrowDays: 420,
+          isMainTrunk: true
+        });
+
+        for (let th = 1; th <= 12; th++) {
+          const u = 0.08 + (th / 13) * 0.84;
+          const pt = mainTrunkCurve.getPointAt(u);
+          const tangent = mainTrunkCurve.getTangentAt(u);
+          const angle = th * 2.39996;
+          const r = 0.035 * Math.pow(1 - u, 0.72) + 0.0085 * u;
+
+          thornInstances.push({
+            pos: new THREE.Vector3(
+              pt.x + Math.cos(angle) * (r * 0.85),
+              pt.y,
+              pt.z + Math.sin(angle) * (r * 0.85)
+            ),
+            rot: new THREE.Euler(0.18 + tangent.z * 0.2, -angle + Math.PI * 0.5, 0),
+            baseScale: 1.0,
+            appearDay: Math.round(u * 380)
+          });
+        }
+
+        function registerRoseBloom(roseIdx, caneIndex, bloomDay, budAppearDay, baseScale, tiltEuler, formType) {
+          const meta = { index: roseIdx + 1, bloomDay: bloomDay, formType: formType };
+          const hitMesh = new THREE.Mesh(hitSphereGeo, hitSphereMat);
+          hitMesh.userData.roseMeta = meta;
+          roseBushGroup.add(hitMesh);
+          interactiveRoseMeshes.push(hitMesh);
+
+          roseDescriptors.push({
+            roseIdx: roseIdx,
+            caneIndex: caneIndex,
+            bloomDay: bloomDay,
+            budAppearDay: budAppearDay,
+            baseScale: baseScale,
+            tiltEuler: tiltEuler,
+            formType: formType,
+            hitMesh: hitMesh,
+            worldMatrix: new THREE.Matrix4(),
+            visible: false,
+            openness: 0
+          });
+
+          const isRosette = formType === 'rosette';
+          const petalCount = isRosette ? 46 : 42;
+          const goldenAngle = 2.39996323;
+
+          for (let k = 0; k < petalCount; k++) {
+            const frac = k / (petalCount - 1);
+            const tier = frac < 0.30 ? 0 : frac < 0.68 ? 1 : 2;
+            const azimuth = k * goldenAngle;
+
+            const radialOffset = 0.0025 + Math.pow(frac, 0.92) * (isRosette ? 0.024 : 0.021);
+            const verticalOffset = 0.018 - frac * (isRosette ? 0.007 : 0.009);
+            const scaleAdjust = isRosette ? 0.88 + frac * 0.25 : 0.84 + frac * 0.28;
+
+            const closedTilt = 0.03 + frac * 0.21;
+            const openTilt = isRosette
+              ? 0.14 + Math.pow(frac, 0.82) * 1.15 + ((k % 3) - 1) * 0.024
+              : 0.08 + Math.pow(frac, 0.88) * 1.10 + ((k % 3) - 1) * 0.020;
+
+            petalTierInstances[tier].push({
+              roseIdx: roseIdx,
+              azimuth: azimuth,
+              radialOffset: radialOffset,
+              verticalOffset: verticalOffset,
+              scaleX: scaleAdjust,
+              scaleY: scaleAdjust * (isRosette ? 0.94 : 1.04),
+              scaleZ: scaleAdjust,
+              closedTilt: closedTilt,
+              openTilt: openTilt
+            });
+          }
+
+          for (let d = 0; d < 2; d++) {
+            dewdropInstances.push({
+              roseIdx: roseIdx,
+              azimuth: d * 2.5 + rand() * 1.2,
+              radial: 0.042 + rand() * 0.018,
+              height: 0.052 + rand() * 0.016,
+              scale: 0.75 + rand() * 0.55
+            });
+          }
+        }
+
+        // Crown Rose #1
+        registerRoseBloom(0, 0, 14, 0, 1.08, new THREE.Euler(0.16, 0.35, -0.06), 'hybridTea');
+
+        function registerCompoundLeaf(originPos, baseEuler, leafletCount, appearDay, baseScale) {
+          const stemLen = leafletCount === 7 ? 0.165 : 0.135;
+          const rotQuat = new THREE.Quaternion().setFromEuler(baseEuler);
+
+          const tipLocal = new THREE.Vector3(0, 0.018, stemLen * 0.94).applyQuaternion(rotQuat).add(originPos);
+          const tipQuat = rotQuat.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI * 0.45, 0, 0)));
+          leafletInstances.push({
+            pos: tipLocal,
+            quat: tipQuat,
+            baseScale: baseScale,
+            appearDay: appearDay
+          });
+
+          const pairs = leafletCount === 7 ? 3 : 2;
+          for (let p = 0; p < pairs; p++) {
+            const dist = stemLen * (0.32 + (p / pairs) * 0.52);
+            const lScale = baseScale * (0.74 + (p / pairs) * 0.16);
+            [-1, 1].forEach(function (side) {
+              const sideLocal = new THREE.Vector3(side * 0.005, 0.022, dist).applyQuaternion(rotQuat).add(originPos);
+              const sideQuat = rotQuat.clone().multiply(
+                new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI * 0.44, side * 0.94, -side * 0.22))
+              );
+              leafletInstances.push({
+                pos: sideLocal,
+                quat: sideQuat,
+                baseScale: lScale,
+                appearDay: appearDay
+              });
+            });
+          }
+        }
+
+        const lateralRoseBloomDays = [
+          26, 52, 78, 106, 134,
+          162, 190, 218, 246, 274,
+          302, 330, 358, 388, 418,
+          452, 492
+        ];
+
+        lateralRoseBloomDays.forEach(function (bloomDay, idx) {
+          const i = idx + 1;
+          const caneStartDay = Math.max(4, bloomDay - 36);
+          const caneFullGrowDays = 36;
+
+          const azimuth = i * 2.39996323 + (rand() - 0.5) * 0.24;
+          const heightProgress = i / 17;
+          const trunkU = Math.min(0.91, Math.max(0.16, 0.16 + heightProgress * 0.74 + (rand() - 0.5) * 0.05));
+          const origin = mainTrunkCurve.getPointAt(trunkU);
+
+          const reach = (0.30 + (1 - trunkU * 0.65) * 0.36) * (0.88 + rand() * 0.24);
+          const lift = reach * (0.62 + trunkU * 0.42);
+
+          const dirX = Math.cos(azimuth);
+          const dirZ = Math.sin(azimuth);
+
+          const pMid = new THREE.Vector3(
+            origin.x + dirX * reach * 0.54,
+            origin.y + lift * 0.38,
+            origin.z + dirZ * reach * 0.54
+          );
+          const pTip = new THREE.Vector3(
+            origin.x + dirX * reach,
+            origin.y + lift,
+            origin.z + dirZ * reach
+          );
+
+          const caneCurve = new THREE.CatmullRomCurve3([origin, pMid, pTip]);
+          const cSegs = 20;
+          const cRadSegs = 7;
+          const startRadius = Math.max(0.0065, 0.019 * (1 - trunkU * 0.42));
+          const caneGeo = createTaperedTubeGeometry(caneCurve, cSegs, startRadius, 0.0045, cRadSegs);
+          const caneMesh = new THREE.Mesh(caneGeo, stemMaterial);
+          caneMesh.castShadow = true;
+          caneMesh.receiveShadow = true;
+          roseBushGroup.add(caneMesh);
+
+          const caneIdx = caneControllers.length;
+          caneControllers.push({
+            mesh: caneMesh,
+            geo: caneGeo,
+            curve: caneCurve,
+            totalIndices: cSegs * cRadSegs * 6,
+            startDay: caneStartDay,
+            fullGrowDays: caneFullGrowDays,
+            isMainTrunk: false
+          });
+
+          for (let t = 0; t < 3; t++) {
+            const tu = 0.25 + (t / 3) * 0.55;
+            const tPt = caneCurve.getPointAt(tu);
+            const tAng = azimuth + (t % 2 === 0 ? 1.4 : -1.4);
+            const tr = startRadius * (1 - tu * 0.5);
+
+            thornInstances.push({
+              pos: new THREE.Vector3(
+                tPt.x + Math.cos(tAng) * (tr * 0.8),
+                tPt.y,
+                tPt.z + Math.sin(tAng) * (tr * 0.8)
+              ),
+              rot: new THREE.Euler(0.22, -tAng + Math.PI * 0.5, 0),
+              baseScale: 0.82,
+              appearDay: caneStartDay + Math.round(tu * caneFullGrowDays)
+            });
+          }
+
+          const leafCount = i % 2 === 0 ? 3 : 2;
+          for (let l = 0; l < leafCount; l++) {
+            const lu = 0.34 + (l / leafCount) * 0.48;
+            const lPos = caneCurve.getPointAt(lu);
+            const sideSign = l % 2 === 0 ? 1 : -1;
+            registerCompoundLeaf(
+              lPos,
+              new THREE.Euler(0.24 + (rand() - 0.5) * 0.2, azimuth + sideSign * 1.12, sideSign * 0.24),
+              l === 0 ? 7 : 5,
+              caneStartDay + Math.round(lu * caneFullGrowDays),
+              0.82 + rand() * 0.26
+            );
+          }
+
+          const formType = i % 3 === 0 ? 'rosette' : 'hybridTea';
+          const outwardDir = new THREE.Vector3(dirX * 0.55, 0.72, dirZ * 0.55).normalize();
+          const dummyObj = new THREE.Object3D();
+          dummyObj.position.copy(pTip);
+          dummyObj.lookAt(pTip.clone().add(outwardDir));
+          dummyObj.rotateX(Math.PI * 0.36);
+
+          registerRoseBloom(
+            i,
+            caneIdx,
+            bloomDay,
+            caneStartDay + Math.round(caneFullGrowDays * 0.52),
+            0.90 + rand() * 0.24,
+            dummyObj.rotation.clone(),
+            formType
+          );
+        });
+
+        for (let b = 0; b < 5; b++) {
+          const bu = 0.05 + b * 0.035;
+          const bPos = mainTrunkCurve.getPointAt(bu);
+          registerCompoundLeaf(
+            bPos,
+            new THREE.Euler(0.28, b * 1.35, 0.22),
+            b < 2 ? 5 : 7,
+            b * 5,
+            0.76 + b * 0.06
+          );
+        }
+
+        petalTierMeshes = petalTierGeos.map(function (geo, tierIdx) {
+          const list = petalTierInstances[tierIdx];
+          const im = new THREE.InstancedMesh(geo, velvetPetalMaterial, list.length);
+          im.castShadow = true;
+          im.receiveShadow = true;
+          im.frustumCulled = false;
+          roseBushGroup.add(im);
+          return im;
+        });
+
+        calyxInstancedMesh = new THREE.InstancedMesh(mergedCalyxGeo, calyxMaterial, roseDescriptors.length);
+        calyxInstancedMesh.castShadow = true;
+        calyxInstancedMesh.frustumCulled = false;
+        roseBushGroup.add(calyxInstancedMesh);
+
+        leafletInstancedMesh = new THREE.InstancedMesh(leafletGeo, glossyLeafMaterial, leafletInstances.length);
+        leafletInstancedMesh.castShadow = true;
+        leafletInstancedMesh.receiveShadow = true;
+        leafletInstancedMesh.frustumCulled = false;
+        roseBushGroup.add(leafletInstancedMesh);
+
+        thornInstancedMesh = new THREE.InstancedMesh(thornGeo, thornMaterial, thornInstances.length);
+        thornInstancedMesh.castShadow = true;
+        thornInstancedMesh.frustumCulled = false;
+        roseBushGroup.add(thornInstancedMesh);
+
+        dewInstancedMesh = new THREE.InstancedMesh(dewGeo, dewdropMaterial, dewdropInstances.length);
+        dewInstancedMesh.frustumCulled = false;
+        roseBushGroup.add(dewInstancedMesh);
+      })();
+
+      // =======================================================================
+      // 9. NON-ELASTIC BOTANICAL GROWTH UPDATER
+      // =======================================================================
+      function clamp01(v) {
+        return v < 0 ? 0 : v > 1 ? 1 : v;
+      }
+
+      function smoothMonotonic(t) {
+        const x = clamp01(t);
+        return x * x * (3 - 2 * x);
+      }
+
+      const scratchDummy = new THREE.Object3D();
+      const scratchPetalLocal = new THREE.Object3D();
+      const scratchFinalMatrix = new THREE.Matrix4();
+      const scratchCaneTips = [];
+      for (let i = 0; i < 18; i++) scratchCaneTips.push(new THREE.Vector3());
+
+      function updateBotanicalGrowth(dayFloat) {
+        if (Math.abs(dayFloat - lastRenderedGrowthDay) < 0.0004) return;
+        lastRenderedGrowthDay = dayFloat;
+
+        for (let i = 0; i < caneControllers.length; i++) {
+          const cc = caneControllers[i];
+          let growFrac = 0;
+          if (cc.isMainTrunk) {
+            const rawProg = clamp01(dayFloat / 499);
+            growFrac = 0.055 + 0.945 * Math.pow(rawProg, 0.86);
+          } else {
+            if (dayFloat < cc.startDay) {
+              growFrac = 0;
+            } else {
+              growFrac = smoothMonotonic((dayFloat - cc.startDay) / cc.fullGrowDays);
+            }
+          }
+
+          if (growFrac <= 0.001) {
+            cc.mesh.visible = false;
+            cc.curve.getPointAt(0, scratchCaneTips[i]);
+          } else {
+            cc.mesh.visible = true;
+            const visibleTris = Math.max(6, Math.floor((growFrac * cc.totalIndices) / 6) * 6);
+            cc.geo.setDrawRange(0, Math.min(cc.totalIndices, visibleTris));
+            cc.curve.getPointAt(clamp01(growFrac), scratchCaneTips[i]);
+          }
+        }
+
+        for (let i = 0; i < thornInstances.length; i++) {
+          const tn = thornInstances[i];
+          if (dayFloat < tn.appearDay) {
+            scratchDummy.position.set(0, -10, 0);
+            scratchDummy.scale.setScalar(0.0001);
+          } else {
+            const tScale = smoothMonotonic((dayFloat - tn.appearDay) / 14);
+            scratchDummy.position.copy(tn.pos);
+            scratchDummy.rotation.copy(tn.rot);
+            scratchDummy.scale.setScalar(tn.baseScale * (0.15 + 0.85 * tScale));
+          }
+          scratchDummy.updateMatrix();
+          thornInstancedMesh.setMatrixAt(i, scratchDummy.matrix);
+        }
+        thornInstancedMesh.instanceMatrix.needsUpdate = true;
+
+        for (let i = 0; i < leafletInstances.length; i++) {
+          const lf = leafletInstances[i];
+          if (dayFloat < lf.appearDay) {
+            scratchDummy.position.set(0, -10, 0);
+            scratchDummy.scale.setScalar(0.0001);
+          } else {
+            const unfurl = smoothMonotonic((dayFloat - lf.appearDay) / 22);
+            scratchDummy.position.copy(lf.pos);
+            scratchDummy.quaternion.copy(lf.quat);
+            scratchDummy.scale.setScalar(lf.baseScale * (0.14 + 0.86 * unfurl));
+          }
+          scratchDummy.updateMatrix();
+          leafletInstancedMesh.setMatrixAt(i, scratchDummy.matrix);
+        }
+        leafletInstancedMesh.instanceMatrix.needsUpdate = true;
+
+        for (let r = 0; r < roseDescriptors.length; r++) {
+          const rd = roseDescriptors[r];
+          const tipPos = scratchCaneTips[rd.caneIndex];
+
+          if (dayFloat < rd.budAppearDay) {
+            rd.visible = false;
+            rd.openness = 0;
+            rd.hitMesh.visible = false;
+
+            scratchDummy.position.set(0, -10, 0);
+            scratchDummy.scale.setScalar(0.0001);
+            scratchDummy.updateMatrix();
+            calyxInstancedMesh.setMatrixAt(r, scratchDummy.matrix);
+            continue;
+          }
+
+          rd.visible = true;
+          rd.hitMesh.visible = true;
+          rd.hitMesh.position.copy(tipPos);
+          rd.hitMesh.position.y += 0.045;
+
+          let scaleMult = 1;
+          if (dayFloat < rd.bloomDay) {
+            const budSpan = Math.max(1, rd.bloomDay - rd.budAppearDay);
+            const budProg = smoothMonotonic((dayFloat - rd.budAppearDay) / budSpan);
+            rd.openness = 0.02 + budProg * 0.12;
+            scaleMult = rd.baseScale * (0.38 + 0.36 * budProg);
+          } else {
+            const openProg = smoothMonotonic((dayFloat - rd.bloomDay) / 26);
+            rd.openness = 0.14 + 0.86 * openProg;
+            scaleMult = rd.baseScale * (0.74 + 0.26 * openProg);
+          }
+
+          scratchDummy.position.copy(tipPos);
+          scratchDummy.rotation.copy(rd.tiltEuler);
+          scratchDummy.scale.setScalar(scaleMult);
+          scratchDummy.updateMatrix();
+          rd.worldMatrix.copy(scratchDummy.matrix);
+          calyxInstancedMesh.setMatrixAt(r, scratchDummy.matrix);
+        }
+        calyxInstancedMesh.instanceMatrix.needsUpdate = true;
+
+        for (let tier = 0; tier < 3; tier++) {
+          const list = petalTierInstances[tier];
+          const im = petalTierMeshes[tier];
+
+          for (let i = 0; i < list.length; i++) {
+            const p = list[i];
+            const rd = roseDescriptors[p.roseIdx];
+
+            if (!rd.visible) {
+              scratchFinalMatrix.makeScale(0.0001, 0.0001, 0.0001);
+              scratchFinalMatrix.setPosition(0, -10, 0);
+              im.setMatrixAt(i, scratchFinalMatrix);
+              continue;
+            }
+
+            const tiltX = p.closedTilt + (p.openTilt - p.closedTilt) * rd.openness;
+            const sinA = Math.sin(p.azimuth);
+            const cosA = Math.cos(p.azimuth);
+
+            scratchPetalLocal.position.set(
+              sinA * p.radialOffset,
+              p.verticalOffset,
+              cosA * p.radialOffset
+            );
+            scratchPetalLocal.rotation.set(tiltX, p.azimuth, 0, 'YXZ');
+            scratchPetalLocal.scale.set(p.scaleX, p.scaleY, p.scaleZ);
+            scratchPetalLocal.updateMatrix();
+
+            scratchFinalMatrix.multiplyMatrices(rd.worldMatrix, scratchPetalLocal.matrix);
+            im.setMatrixAt(i, scratchFinalMatrix);
+          }
+          im.instanceMatrix.needsUpdate = true;
+        }
+
+        for (let d = 0; d < dewdropInstances.length; d++) {
+          const dw = dewdropInstances[d];
+          const rd = roseDescriptors[dw.roseIdx];
+
+          if (!rd.visible || rd.openness < 0.35) {
+            scratchFinalMatrix.makeScale(0.0001, 0.0001, 0.0001);
+            scratchFinalMatrix.setPosition(0, -10, 0);
+            dewInstancedMesh.setMatrixAt(d, scratchFinalMatrix);
+            continue;
+          }
+
+          const spread = 0.65 + 0.35 * rd.openness;
+          scratchPetalLocal.position.set(
+            Math.sin(dw.azimuth) * dw.radial * spread,
+            dw.height,
+            Math.cos(dw.azimuth) * dw.radial * spread
+          );
+          scratchPetalLocal.rotation.set(0, 0, 0);
+          scratchPetalLocal.scale.setScalar(dw.scale * clamp01((rd.openness - 0.35) / 0.4));
+          scratchPetalLocal.updateMatrix();
+
+          scratchFinalMatrix.multiplyMatrices(rd.worldMatrix, scratchPetalLocal.matrix);
+          dewInstancedMesh.setMatrixAt(d, scratchFinalMatrix);
+        }
+        dewInstancedMesh.instanceMatrix.needsUpdate = true;
+      }
+
+      // =======================================================================
+      // 10. BUILT-IN 360° SPHERICAL ORBIT, ZOOM & PAN CONTROLLER (ZERO EXTERNAL LIBS)
+      // =======================================================================
+      const orbitState = {
+        target: new THREE.Vector3(0, 0.74, 0),
+        targetGoal: new THREE.Vector3(0, 0.74, 0),
+        theta: 0.22,
+        thetaGoal: 0.22,
+        phi: 1.38,
+        phiGoal: 1.38,
+        radius: 4.1,
+        radiusGoal: 4.1,
+        minRadius: 0.32,
+        maxRadius: 5.8,
+        minPhi: 0.05,
+        maxPhi: Math.PI * 0.495
+      };
+
+      const PAN_MIN = new THREE.Vector3(-0.75, 0.08, -0.75);
+      const PAN_MAX = new THREE.Vector3(0.75, 1.65, 0.75);
+
+      function computeFullPlantFraming(pureMode) {
+        const aspect = window.innerWidth / window.innerHeight;
+        const vFovRad = THREE.MathUtils.degToRad(camera.fov);
+        const tanHalfV = Math.tan(vFovRad / 2);
+        const tanHalfH = tanHalfV * aspect;
+
+        const specimenHeight = 1.88;
+        const specimenWidth = 1.48;
+
+        const verticalFill = pureMode ? 0.66 : 0.46;
+        const horizontalFill = pureMode ? 0.78 : 0.70;
+
+        const distV = (specimenHeight / verticalFill) / (2 * tanHalfV);
+        const distH = (specimenWidth / horizontalFill) / (2 * tanHalfH);
+        const dist = Math.min(5.5, Math.max(3.45, Math.max(distV, distH)));
+
+        return {
+          radius: dist,
+          theta: pureMode ? 0.30 : 0.22,
+          phi: pureMode ? 1.35 : 1.37,
+          targetY: pureMode ? 0.82 : 0.74
+        };
+      }
+
+      function applyFramingGoal(pureMode, snapImmediately) {
+        const f = computeFullPlantFraming(pureMode);
+        orbitState.radiusGoal = f.radius;
+        orbitState.thetaGoal = f.theta;
+        orbitState.phiGoal = f.phi;
+        orbitState.targetGoal.set(0, f.targetY, 0);
+
+        if (snapImmediately) {
+          orbitState.radius = f.radius;
+          orbitState.theta = f.theta;
+          orbitState.phi = f.phi;
+          orbitState.target.set(0, f.targetY, 0);
+        }
+      }
+
+      // Mouse & Touch Interaction Handlers
+      let isDraggingOrbit = false;
+      let isDraggingPan = false;
+      let prevPointer = { x: 0, y: 0 };
+      let pointerDownOrigin = { x: 0, y: 0 };
+      let activeTouches = [];
+      let prevPinchDist = 0;
+
+      const domElem = renderer.domElement;
+
+      domElem.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+      });
+
+      domElem.addEventListener('mousedown', function (e) {
+        pointerDownOrigin = { x: e.clientX, y: e.clientY };
+        prevPointer = { x: e.clientX, y: e.clientY };
+        if (e.button === 2 || e.shiftKey) {
+          isDraggingPan = true;
+        } else {
+          isDraggingOrbit = true;
+        }
+      });
+
+      window.addEventListener('mousemove', function (e) {
+        if (!isDraggingOrbit && !isDraggingPan) return;
+        const dx = e.clientX - prevPointer.x;
+        const dy = e.clientY - prevPointer.y;
+        prevPointer = { x: e.clientX, y: e.clientY };
+
+        if (isDraggingOrbit) {
+          orbitState.thetaGoal -= dx * 0.0065;
+          orbitState.phiGoal = Math.max(
+            orbitState.minPhi,
+            Math.min(orbitState.maxPhi, orbitState.phiGoal - dy * 0.0055)
+          );
+        } else if (isDraggingPan) {
+          const panScale = orbitState.radius * 0.0014;
+          const right = new THREE.Vector3();
+          camera.getWorldDirection(right);
+          right.cross(camera.up).normalize();
+          orbitState.targetGoal.addScaledVector(right, -dx * panScale);
+          orbitState.targetGoal.y += dy * panScale;
+          orbitState.targetGoal.clamp(PAN_MIN, PAN_MAX);
+        }
+      });
+
+      window.addEventListener('mouseup', function (e) {
+        const moveDist = Math.hypot(e.clientX - pointerDownOrigin.x, e.clientY - pointerDownOrigin.y);
+        if (moveDist < 7 && e.button === 0) {
+          handleTapOrClickOnRose(e.clientX, e.clientY);
+        }
+        isDraggingOrbit = false;
+        isDraggingPan = false;
+      });
+
+      domElem.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        const zoomFactor = e.deltaY > 0 ? 1.08 : 0.92;
+        orbitState.radiusGoal = Math.max(
+          orbitState.minRadius,
+          Math.min(orbitState.maxRadius, orbitState.radiusGoal * zoomFactor)
+        );
+      }, { passive: false });
+
+      // Touch Gestures (1-Finger 360° Orbit, 2-Finger Pinch Zoom & Pan)
+      domElem.addEventListener('touchstart', function (e) {
+        activeTouches = Array.from(e.touches);
+        if (activeTouches.length === 1) {
+          pointerDownOrigin = { x: activeTouches[0].clientX, y: activeTouches[0].clientY };
+          prevPointer = { x: activeTouches[0].clientX, y: activeTouches[0].clientY };
+          isDraggingOrbit = true;
+          isDraggingPan = false;
+        } else if (activeTouches.length >= 2) {
+          isDraggingOrbit = false;
+          isDraggingPan = true;
+          const dx = activeTouches[0].clientX - activeTouches[1].clientX;
+          const dy = activeTouches[0].clientY - activeTouches[1].clientY;
+          prevPinchDist = Math.hypot(dx, dy);
+          prevPointer = {
+            x: (activeTouches[0].clientX + activeTouches[1].clientX) * 0.5,
+            y: (activeTouches[0].clientY + activeTouches[1].clientY) * 0.5
+          };
+        }
+      }, { passive: true });
+
+      domElem.addEventListener('touchmove', function (e) {
+        const touches = Array.from(e.touches);
+        if (touches.length === 1 && isDraggingOrbit) {
+          const dx = touches[0].clientX - prevPointer.x;
+          const dy = touches[0].clientY - prevPointer.y;
+          prevPointer = { x: touches[0].clientX, y: touches[0].clientY };
+
+          orbitState.thetaGoal -= dx * 0.007;
+          orbitState.phiGoal = Math.max(
+            orbitState.minPhi,
+            Math.min(orbitState.maxPhi, orbitState.phiGoal - dy * 0.006)
+          );
+        } else if (touches.length >= 2) {
+          const dx = touches[0].clientX - touches[1].clientX;
+          const dy = touches[0].clientY - touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          if (prevPinchDist > 10) {
+            const ratio = prevPinchDist / dist;
+            orbitState.radiusGoal = Math.max(
+              orbitState.minRadius,
+              Math.min(orbitState.maxRadius, orbitState.radiusGoal * ratio)
+            );
+          }
+          prevPinchDist = dist;
+
+          const midX = (touches[0].clientX + touches[1].clientX) * 0.5;
+          const midY = (touches[0].clientY + touches[1].clientY) * 0.5;
+          const panDx = midX - prevPointer.x;
+          const panDy = midY - prevPointer.y;
+          prevPointer = { x: midX, y: midY };
+
+          const panScale = orbitState.radius * 0.0014;
+          const right = new THREE.Vector3();
+          camera.getWorldDirection(right);
+          right.cross(camera.up).normalize();
+          orbitState.targetGoal.addScaledVector(right, -panDx * panScale);
+          orbitState.targetGoal.y += panDy * panScale;
+          orbitState.targetGoal.clamp(PAN_MIN, PAN_MAX);
+        }
+      }, { passive: true });
+
+      domElem.addEventListener('touchend', function (e) {
+        if (activeTouches.length === 1 && e.changedTouches.length === 1) {
+          const t = e.changedTouches[0];
+          const moveDist = Math.hypot(t.clientX - pointerDownOrigin.x, t.clientY - pointerDownOrigin.y);
+          if (moveDist < 9) {
+            handleTapOrClickOnRose(t.clientX, t.clientY);
+          }
+        }
+        activeTouches = Array.from(e.touches);
+        if (activeTouches.length === 0) {
+          isDraggingOrbit = false;
+          isDraggingPan = false;
+        }
+      });
+
+      function updateCameraFromOrbit() {
+        orbitState.theta += (orbitState.thetaGoal - orbitState.theta) * 0.10;
+        orbitState.phi += (orbitState.phiGoal - orbitState.phi) * 0.10;
+        orbitState.radius += (orbitState.radiusGoal - orbitState.radius) * 0.10;
+        orbitState.target.lerp(orbitState.targetGoal, 0.10);
+
+        const sinPhi = Math.sin(orbitState.phi);
+        const cosPhi = Math.cos(orbitState.phi);
+        const sinTheta = Math.sin(orbitState.theta);
+        const cosTheta = Math.cos(orbitState.theta);
+
+        camera.position.set(
+          orbitState.target.x + orbitState.radius * sinPhi * sinTheta,
+          orbitState.target.y + orbitState.radius * cosPhi,
+          orbitState.target.z + orbitState.radius * sinPhi * cosTheta
+        );
+        camera.lookAt(orbitState.target);
+      }
+
+      // Raycast Rose Inspection
+      const raycaster = new THREE.Raycaster();
+      const pointerNDC = new THREE.Vector2();
+
+      function handleTapOrClickOnRose(clientX, clientY) {
+        if (isPure3DMode) return;
+        const rect = domElem.getBoundingClientRect();
+        pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+        pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(pointerNDC, camera);
+        const visibleHits = interactiveRoseMeshes.filter(function (m) { return m.visible; });
+        const intersects = raycaster.intersectObjects(visibleHits, false);
+
+        if (intersects.length > 0) {
+          const hitObj = intersects[0].object;
+          const meta = hitObj.userData.roseMeta;
+          if (meta) {
+            bushHappyImpulse = 0.65;
+            triggerPetalBurst(hitObj.position, 10);
+            playPluckNote(659.25 + (meta.index % 5) * 110, 0.055, 1.2);
+            openRoseInspectionPopover(meta);
+          }
+        } else {
+          hideRoseInspectionPopover();
+        }
+      }
+
+      function openRoseInspectionPopover(meta) {
+        hideToast();
+        const bloomDateObj = getDateForDayIndex(meta.bloomDay);
+        const isOpened = selectedDay >= meta.bloomDay;
+
+        popoverBloomTitle.textContent = 'الوردة البرغندية رقم ' + meta.index;
+
+        if (isOpened) {
+          const daysOpen = selectedDay - meta.bloomDay;
+          popoverBloomStage.textContent = meta.formType === 'rosette'
+            ? 'وردة جوري إنجليزية متفتحة بالكامل'
+            : 'وردة برغندية مخملية متفتحة';
+          popoverBloomDate.textContent = formatArabicShortDate(bloomDateObj);
+          popoverBloomAge.textContent = daysOpen === 0
+            ? 'تفتحت في هذا اليوم'
+            : 'متفتحة منذ ' + daysOpen + ' يوم';
+        } else {
+          const daysUntil = meta.bloomDay - selectedDay;
+          popoverBloomStage.textContent = 'برعم ورد برغندي في طور النمو';
+          popoverBloomDate.textContent = 'يتفتح في ' + formatArabicShortDate(bloomDateObj);
+          popoverBloomAge.textContent = 'يتبقى ' + daysUntil + ' يوم على التفتح';
+        }
+
+        rosePopover.classList.remove('floating-hidden');
+        rosePopover.classList.add('floating-visible');
+      }
+
+      function hideRoseInspectionPopover() {
+        rosePopover.classList.remove('floating-visible');
+        rosePopover.classList.add('floating-hidden');
+      }
+
+      closePopoverBtn.addEventListener('click', hideRoseInspectionPopover);
+
+      // =======================================================================
+      // 11. TOASTS, MIDNIGHT COUNTDOWN, MILESTONES & PURE 3D MODE
+      // =======================================================================
+      let toastTimer = null;
+
+      function showToast(title, body, duration) {
+        if (duration === undefined) duration = 3400;
+        if (isPure3DMode) return;
+        hideRoseInspectionPopover();
+        toastTitle.textContent = title;
+        toastBody.textContent = body;
+        statusToast.classList.remove('floating-hidden');
+        statusToast.classList.add('floating-visible');
+
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, duration);
+      }
+
+      function hideToast() {
+        statusToast.classList.remove('floating-visible');
+        statusToast.classList.add('floating-hidden');
+      }
+
+      function triggerFutureLockFeedback() {
+        lockedTomorrowBtn.classList.remove('animate-lock-shake');
+        void lockedTomorrowBtn.offsetWidth;
+        lockedTomorrowBtn.classList.add('animate-lock-shake');
+
+        showToast(
+          'اليوم ' + (todayIndex + 1) + ' مقفل حالياً',
+          'يتفتح نمو الغد تلقائياً عند منتصف الليل.'
+        );
+      }
+
+      function updateMidnightCountdown() {
+        const now = new Date();
+        const nextMidnight = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+          0, 0, 0, 0
+        );
+        const remainingMs = Math.max(0, nextMidnight.getTime() - now.getTime());
+        const totalSec = Math.floor(remainingMs / 1000);
+        const hh = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const ss = String(totalSec % 60).padStart(2, '0');
+        countdownClock.textContent = hh + ':' + mm + ':' + ss;
+
+        const liveToday = computeTodayDayIndex();
+        if (liveToday > todayIndex) {
+          const wasAtLatest = selectedDay === todayIndex;
+          todayIndex = liveToday;
+          daySlider.max = String(todayIndex);
+          renderMilestonePills();
+          if (wasAtLatest) {
+            setSelectedDay(todayIndex);
+          } else {
+            refreshUI();
+          }
+          showToast(
+            'بدأ اليوم ' + todayIndex,
+            'تفتّحت ملامح جديدة في الشجيرة مع بداية هذا اليوم.',
+            4200
+          );
+        }
+      }
+
+      function renderMilestonePills() {
+        const definitions = [
+          { label: 'البداية 2/7/2025', day: 0 },
+          { label: 'يوم 100', day: 100 },
+          { label: 'يوم 250', day: 250 },
+          { label: 'سنة 365', day: 365 },
+          { label: 'أمس', day: Math.max(0, todayIndex - 1) },
+          { label: 'اليوم', day: todayIndex }
+        ];
+
+        const seenDays = new Set();
+        const validPills = [];
+        definitions.forEach(function (item) {
+          if (item.day <= todayIndex && !seenDays.has(item.day)) {
+            seenDays.add(item.day);
+            validPills.push(item);
+          }
+        });
+
+        milestonePillsContainer.innerHTML = '';
+        validPills.forEach(function (pill) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.dataset.day = String(pill.day);
+          btn.textContent = pill.label;
+          btn.className = 'milestone-pill shrink-0 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition active:scale-95';
+          btn.addEventListener('click', function () {
+            pauseJourney();
+            setSelectedDay(pill.day);
+          });
+          milestonePillsContainer.appendChild(btn);
+        });
+
+        highlightActiveMilestonePill();
+      }
+
+      function highlightActiveMilestonePill() {
+        const buttons = milestonePillsContainer.querySelectorAll('.milestone-pill');
+        buttons.forEach(function (btn) {
+          const d = parseInt(btn.dataset.day, 10);
+          if (d === selectedDay) {
+            btn.className = 'milestone-pill shrink-0 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition active:scale-95 bg-gradient-to-l from-[#7a102e] to-[#4a0a1e] border-[#e5c585]/70 text-[#fff8ee]';
+          } else {
+            btn.className = 'milestone-pill shrink-0 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition active:scale-95 bg-[#380716]/60 border-[#e5c585]/24 text-[#ead4dc]';
+          }
+        });
+      }
+
+      // Pure 3D Inspection Mode ("وضع 3D")
+      function enterPure3DMode() {
+        isPure3DMode = true;
+        hideToast();
+        hideRoseInspectionPopover();
+
+        topHud.classList.add('hud-hidden-top');
+        bottomHud.classList.add('hud-hidden-bottom');
+        pure3dControls.classList.remove('hidden');
+
+        applyFramingGoal(true, false);
+      }
+
+      function exitPure3DMode() {
+        isPure3DMode = false;
+        pure3dControls.classList.add('hidden');
+        topHud.classList.remove('hud-hidden-top');
+        bottomHud.classList.remove('hud-hidden-bottom');
+
+        applyFramingGoal(false, false);
+      }
+
+      enter3dModeBtn.addEventListener('click', enterPure3DMode);
+      exit3dModeBtn.addEventListener('click', exitPure3DMode);
+
+      pure3dResetBtn.addEventListener('click', function () {
+        applyFramingGoal(true, false);
+      });
+
+      function updateSliderFill() {
+        const pct = todayIndex > 0 ? (selectedDay / todayIndex) * 100 : 100;
+        daySlider.style.background =
+          'linear-gradient(to left, #9e193c 0%, #f0d290 ' + pct + '%, rgba(255,246,230,0.22) ' + pct + '%)';
+      }
+
+      function countActiveBloomsForDay(dayIdx) {
+        let count = 0;
+        for (let i = 0; i < roseDescriptors.length; i++) {
+          if (dayIdx >= roseDescriptors[i].budAppearDay) {
+            count++;
+          }
+        }
+        return Math.max(1, count);
+      }
+
+      function refreshUI() {
+        const targetDate = getDateForDayIndex(selectedDay);
+        const heightCm = computeTreeHeightCm(selectedDay);
+        const activeBlooms = countActiveBloomsForDay(selectedDay);
+
+        headerDayBadge.textContent = selectedDay === 0 ? 'يوم البداية' : 'اليوم ' + selectedDay;
+        metricStoryAge.textContent = selectedDay + ' يوم';
+        metricFullDate.textContent = formatArabicFullDate(targetDate);
+        metricTreeHeight.textContent = heightCm.toFixed(1) + ' سم';
+        metricBloomCount.textContent = activeBlooms + ' وردة';
+        metricElapsedDuration.textContent = computeElapsedMonthsAndDays(targetDate);
+
+        daySlider.max = String(todayIndex);
+        daySlider.value = String(selectedDay);
+        updateSliderFill();
+        highlightActiveMilestonePill();
+
+        prevDayBtn.disabled = selectedDay <= 0;
+        nextDayBtn.classList.toggle('opacity-55', selectedDay >= todayIndex);
+      }
+
+      function setSelectedDay(day) {
+        if (day > todayIndex) {
+          selectedDay = todayIndex;
+          refreshUI();
+          triggerFutureLockFeedback();
+          return;
+        }
+        selectedDay = Math.max(0, Math.min(todayIndex, Math.round(day)));
+        refreshUI();
+
+        if ([100, 250, 365, 499, 500].indexOf(selectedDay) !== -1) {
+          triggerPetalBurst(new THREE.Vector3(0, 1.3, 0), 12);
+        }
+      }
+
+      function startOrResumeJourney() {
+        if (todayIndex <= 0) {
+          showToast('يوم البداية', 'هذه هي نقطة الانطلاق الأولى للشجيرة.');
+          return;
+        }
+        hideRoseInspectionPopover();
+        isJourneyPlaying = true;
+
+        if (selectedDay >= todayIndex) {
+          journeyPausedFraction = 0;
+          selectedDay = 0;
+          visualDay = 0;
+          refreshUI();
+        } else {
+          journeyPausedFraction = selectedDay / todayIndex;
+        }
+
+        journeyStartMs = performance.now() - journeyPausedFraction * JOURNEY_DURATION_MS;
+        journeyPlayIcon.classList.add('hidden');
+        journeyPauseIcon.classList.remove('hidden');
+        growthJourneyLabel.textContent = 'إيقاف مؤقت';
+      }
+
+      function pauseJourney() {
+        if (!isJourneyPlaying) return;
+        isJourneyPlaying = false;
+        journeyPausedFraction = todayIndex > 0 ? visualDay / todayIndex : 0;
+        journeyPauseIcon.classList.add('hidden');
+        journeyPlayIcon.classList.remove('hidden');
+        growthJourneyLabel.textContent = 'رحلة النمو';
+      }
+
+      growthJourneyBtn.addEventListener('click', function () {
+        if (isJourneyPlaying) {
+          pauseJourney();
+        } else {
+          startOrResumeJourney();
+        }
+      });
+
+      daySlider.addEventListener('input', function (e) {
+        pauseJourney();
+        hideRoseInspectionPopover();
+        setSelectedDay(parseInt(e.target.value, 10));
+      });
+
+      prevDayBtn.addEventListener('click', function () {
+        pauseJourney();
+        hideRoseInspectionPopover();
+        if (selectedDay > 0) setSelectedDay(selectedDay - 1);
+      });
+
+      nextDayBtn.addEventListener('click', function () {
+        pauseJourney();
+        hideRoseInspectionPopover();
+        if (selectedDay >= todayIndex) {
+          triggerFutureLockFeedback();
+        } else {
+          setSelectedDay(selectedDay + 1);
+        }
+      });
+
+      lockedTomorrowBtn.addEventListener('click', function () {
+        pauseJourney();
+        triggerFutureLockFeedback();
+      });
+
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (isPure3DMode) {
+            exitPure3DMode();
+          } else {
+            hideRoseInspectionPopover();
+          }
+          return;
+        }
+        if (e.key === 'ArrowRight') {
+          pauseJourney();
+          if (selectedDay > 0) setSelectedDay(selectedDay - 1);
+        } else if (e.key === 'ArrowLeft') {
+          pauseJourney();
+          if (selectedDay >= todayIndex) {
+            triggerFutureLockFeedback();
+          } else {
+            setSelectedDay(selectedDay + 1);
+          }
+        }
+      });
+
+      window.addEventListener('resize', function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        applyFramingGoal(isPure3DMode, false);
+      });
+
+      // =======================================================================
+      // 12. 60FPS ANIMATION LOOP & WELCOME CALLBACK
+      // =======================================================================
+      const cloudDummy = new THREE.Object3D();
+      const fxDummy = new THREE.Object3D();
+      let frameCounter = 0;
+      let prevFrameMs = performance.now();
+
+      function animate(nowMs) {
+        requestAnimationFrame(animate);
+
+        const dt = Math.min(0.05, (nowMs - prevFrameMs) * 0.001);
+        prevFrameMs = nowMs;
+        const timeSec = nowMs * 0.001;
+
+        if (isJourneyPlaying) {
+          const elapsed = nowMs - journeyStartMs;
+          const rawT = clamp01(elapsed / JOURNEY_DURATION_MS);
+          const organicT = 0.85 * rawT + 0.15 * smoothMonotonic(rawT);
+          visualDay = organicT * todayIndex;
+
+          const roundedDay = Math.round(visualDay);
+          if (roundedDay !== selectedDay) {
+            selectedDay = roundedDay;
+            refreshUI();
+          }
+
+          if (rawT >= 1) {
+            selectedDay = todayIndex;
+            visualDay = todayIndex;
+            refreshUI();
+            pauseJourney();
+            triggerMorningDewShower();
+          }
+        } else {
+          visualDay += (selectedDay - visualDay) * 0.14;
+          if (Math.abs(selectedDay - visualDay) < 0.015) {
+            visualDay = selectedDay;
+          }
+        }
+
+        updateBotanicalGrowth(visualDay);
+
+        if (bushHappyImpulse > 0.001) {
+          bushHappyImpulse = Math.max(0, bushHappyImpulse - dt * 1.4);
+        }
+        const happySway = Math.sin(timeSec * 11.0) * 0.022 * bushHappyImpulse;
+        roseBushGroup.rotation.z = Math.sin(timeSec * 0.85) * 0.009 + happySway;
+        roseBushGroup.rotation.x = Math.cos(timeSec * 0.65) * 0.006 + happySway * 0.5;
+
+        // Fluttering Butterflies
+        for (let i = 0; i < butterflies.length; i++) {
+          const bf = butterflies[i];
+          const ang = timeSec * bf.speed + bf.phase;
+          const nextAng = ang + 0.05;
+          const bx = Math.cos(ang) * bf.orbitRadius;
+          const bz = Math.sin(ang) * bf.orbitRadius;
+          const by = bf.baseHeight + Math.sin(timeSec * 1.8 + bf.phase) * 0.14;
+
+          bf.root.position.set(bx, by, bz);
+          bf.root.lookAt(Math.cos(nextAng) * bf.orbitRadius, by, Math.sin(nextAng) * bf.orbitRadius);
+          const wingAngle = Math.sin(timeSec * bf.flapSpeed + bf.phase) * 0.95;
+          bf.leftWing.rotation.y = wingAngle;
+          bf.rightWing.rotation.y = -wingAngle;
+        }
+
+        pollenPoints.rotation.y = timeSec * 0.04;
+        pollenPoints.position.y = Math.sin(timeSec * 0.7) * 0.06;
+
+        // Dew Shower Droplets
+        let anyDewUpdated = false;
+        for (let i = 0; i < DEW_DROP_COUNT; i++) {
+          const dp = dewParticles[i];
+          if (dp.active) {
+            anyDewUpdated = true;
+            dp.pos.addScaledVector(dp.vel, dt);
+            if (dp.pos.y < 0.02) {
+              dp.active = false;
+              fxDummy.position.set(0, -10, 0);
+              fxDummy.scale.setScalar(0.0001);
+            } else {
+              fxDummy.position.copy(dp.pos);
+              fxDummy.scale.set(dp.scale * 0.8, dp.scale * 1.5, dp.scale * 0.8);
+            }
+            fxDummy.updateMatrix();
+            dewShowerMesh.setMatrixAt(i, fxDummy.matrix);
+          }
+        }
+        if (anyDewUpdated) dewShowerMesh.instanceMatrix.needsUpdate = true;
+
+        // Floating 3D Petal Burst
+        let anyPetalUpdated = false;
+        for (let i = 0; i < BURST_PETAL_COUNT; i++) {
+          const bp = burstPetals[i];
+          if (bp.active) {
+            anyPetalUpdated = true;
+            bp.vel.y -= 0.42 * dt;
+            bp.vel.x += Math.sin(timeSec * 3.0 + i) * 0.15 * dt;
+            bp.pos.addScaledVector(bp.vel, dt);
+            bp.rot.x += bp.rotVel.x * dt;
+            bp.rot.y += bp.rotVel.y * dt;
+            bp.rot.z += bp.rotVel.z * dt;
+
+            if (bp.pos.y < 0.02) {
+              bp.active = false;
+              fxDummy.position.set(0, -10, 0);
+              fxDummy.scale.setScalar(0.0001);
+            } else {
+              fxDummy.position.copy(bp.pos);
+              fxDummy.rotation.copy(bp.rot);
+              fxDummy.scale.setScalar(bp.scale);
+            }
+            fxDummy.updateMatrix();
+            burstPetalMesh.setMatrixAt(i, fxDummy.matrix);
+          }
+        }
+        if (anyPetalUpdated) burstPetalMesh.instanceMatrix.needsUpdate = true;
+
+        // Drifting Clouds
+        frameCounter++;
+        if (cloudInstancedMesh && frameCounter % 3 === 0) {
+          for (let i = 0; i < cloudData.length; i++) {
+            const cd = cloudData[i];
+            const curAng = cd.ang + timeSec * cd.speed;
+            cloudDummy.position.set(Math.cos(curAng) * cd.dist, cd.y, Math.sin(curAng) * cd.dist);
+            cloudDummy.lookAt(0, cd.y * 0.7, 0);
+            cloudDummy.scale.set(cd.scale, cd.scale * 0.7, 1);
+            cloudDummy.updateMatrix();
+            cloudInstancedMesh.setMatrixAt(i, cloudDummy.matrix);
+          }
+          cloudInstancedMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        updateCameraFromOrbit();
+        renderer.render(scene, camera);
+      }
+
+      // Hook into the instant curtain opener
+      window.onGardenEnteredCallback = function () {
+        startGardenAudio();
+        const f = computeFullPlantFraming(false);
+        orbitState.radius = f.radius + 0.9;
+        orbitState.theta = f.theta + 0.35;
+        applyFramingGoal(false, false);
+        triggerPetalBurst(new THREE.Vector3(0, 1.35, 0), 16);
+      };
+
+      // Initialize immediately
+      todayIndex = computeTodayDayIndex();
+      selectedDay = todayIndex;
+      visualDay = todayIndex;
+
+      applyFramingGoal(false, true);
+      updateCameraFromOrbit();
+      renderMilestonePills();
+      refreshUI();
+      updateMidnightCountdown();
+      setInterval(updateMidnightCountdown, 1000);
+      updateBotanicalGrowth(visualDay);
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
